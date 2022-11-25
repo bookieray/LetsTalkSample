@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="response_types">
+        <item>Respond to Thread</item>
+        <item>Respond to Comment</item>
+        <item>Comment on Activity</item>
+    </string-array>
+    <string-array name="letstalk_types">
+        <item>Agree</item>
+        <item>Disagree</item>
+        <item>Question</item>
+        <item>Quote</item>
+    </string-array>
+    <string-array name="ctypes">
+        <item>All</item>
+        <item>Agree</item>
+        <item>Disagree</item>
+        <item>Question</item>
+        <item>Answers</item>
+    </string-array>
+
+    <string-array name="orgtypes">
+        <item>Religious</item>
+        <item>Social</item>
+        <item>Academic</item>
+        <item>Business</item>
+    </string-array>
+
+</resources>

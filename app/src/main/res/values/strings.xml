@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">LetsTalkSample</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="google_client_id">484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com</string>
+    <string name="hvsay_desc">From a sea of many social media content that could be about anything, a Have Your Say Session zooms in with a topic from the organization or group and channels the members voice in 2 categories, agree or disagree allowing the organization or members to filter the audio and listen to the automated playback in a list organized to bring the best of the content forward</string>
+    <string name="why_hvsay_as_org">Away from the all goofy videos and posts, you can soley engage your members in topics and assess their interests in such topics and the division in such topics. You can filter such content by using the agree or disagree filter and playback their audio and assess the number of agrees or disagrees or unsure to drive your decision in your org content or events etc.</string>
+    <string name="why_hvsay_as_member">Choose the topics, instead of just likes and choatic conversations, any topic group convo you remain engaged in topics you care about, suggest topics</string>
+    <string name="hvsay_rules">We enforce the usual rules around digital platforms, but since this can be ambigious we do not allow discrimination, hate speech or adult content</string>
+    <string name="grtalk_topic">You type your comments in a Have Your Say,Lets Talk or whatever feature linked to a convo and we group by topic automated while you type
+    </string>
+    <string name="grtalk_nav">Tap on a topic to all comments under that topic that fellow users have type and not having to state the topic of that comment
+    </string>
+    <string name="nodistract_posts">Why speak to your members when they are surrounded by so many irrelevant posts or videos and news feed, a space for voice and content and optimized for that
+    </string>
+    <string name="nodistract_enagagement">When you have no distractions, your members are likely to be attentative to your announcements, content and you in generally</string>
+    <string name="no_gr_limit">No matter the size send as many notifications as you can</string>
+    <string name="no_gr_limit_sections">Unlimited but be harder to arrange into sections that make it manageable but we do just that</string>
+    <string name="eventexp_rev">Users can review before and after the event and be adviced on the max</string>
+    <string name="eventexp_infotags">Info tags will help the organizations and their members understand bits of information about each other to help with the matter at hand</string>
+    <string name="exp_infotags">Info tags will help the organizations and their members understand bits of information about each other to help with the matter at hand</string>
+    <string name="event_linked_tk">Events linked to a Lets Talk Feature that tracks conversation according to different topics and infos with comments under them</string>
+    <string name="hvsay_linked_tk">The playback of the audio comments have a Lets Talk convo with topics to navigate between comments under the topics</string>
+    <string name="hvsay_linked_event">Session can be about an event and be linked to an event and for context users can interchangeablely go to the session and back to the event</string>
+    <string name="survey_hvsay_session">Surveys linked to sessions that lets people talk about their voting for a question</string>
+    <string name="lets_talk_explain">Lets Talk about anything in more convenient way organized by topic and navigated by topic</string>
+    <string name="lets_talk_filters">Lets Talk uses agrees,disagrees or question to each comment to allow for filters to be used by organizations and fellow members</string>
+    <string name="facebook_app_id">538840670941687</string>
+    <string name="fb_login_protocol_scheme">fb1234</string>
+    <string name="facebook_client_token">56789</string>
+    <string name="preference_file_key">preference_file_key</string>
+
+    <string name="pick_year_month">Pick Year and Month</string>
+    <string name="pick_folder_type">Pick Folder Type</string>
+    <string name="pick_images_only">Images Only</string>
+    <string name="pick_videos_only">Videos Only</string>
+    <string name="pick_image_video">Pick Image or Video</string>
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+    <string name="dummy_text1">vsdavg dvgdsgsdd dvsdgvsd dgvsdafg what is this</string>
+    <string name="suggestion_label">There are no more activities past this point, so create a new one here is our suggestions based on what\'s trending and from trusted news sources</string>
+    <string name="primary_domain">https:bookie.brainwind.co.za</string>
+    <string name="secondary_domain">https://bookie.remould.co.za/</string>
+    <string name="heading_size">16dp</string>
+    <string name="description_size">14dp</string>
+
+</resources>

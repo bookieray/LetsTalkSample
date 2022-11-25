@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loading"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:visibility="gone"
+    >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true"
+        android:layout_margin="10dp">
+
+        <TextView
+            android:id="@+id/loading_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please wait"
+            android:textStyle="bold"
+            android:textSize="@dimen/heading_size"
+            />
+
+        <TextView
+            android:id="@+id/loading_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="We are downloading your conversation"
+            android:textSize="@dimen/description_size"
+            />
+
+        <ProgressBar
+            android:id="@+id/progress_bar_loading"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:progressTint="@color/purple_700"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/purple_700"
+
+            />
+
+        <Button
+            android:id="@+id/retry_button_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

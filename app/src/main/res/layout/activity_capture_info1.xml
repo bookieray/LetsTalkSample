@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:card_view="http://schemas.android.com/tools"
+    tools:context=".CaptureInfo1">
+
+    <FrameLayout
+        android:id="@+id/uystra"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.scwang.wave.MultiWaveHeader
+            android:id="@+id/waveHeader"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:mwhStartColor="@color/baselight"
+            app:mwhCloseColor="@color/baselight_extra"
+            app:mwhWaveHeight="60dp"
+            android:layout_alignParentTop="true"
+            />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/topPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_alignParentTop="true"
+            card_view:cardCornerRadius="4dp"
+            card_view:cardBackgroundColor="@color/white"
+            >
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:background="@drawable/card_edge"
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/back_but"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/baseline_keyboard_arrow_left_black_24dp"
+                    app:backgroundTint="@color/white"
+                    app:fabSize="mini" />
+
+                <androidx.appcompat.widget.Toolbar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                </androidx.appcompat.widget.Toolbar>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginLeft="60dp"
+                        android:layout_marginTop="3dp"
+                        android:orientation="vertical"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bookie"
+                            android:textStyle="bold"
+
+                            />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="JUST SOME INFO"
+                            android:textSize="17dp"
+                            android:textColor="@color/purple_500"
+                            />
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/kjusma"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/uystra"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SIGN IN, EASY AND QUICK"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bookie powered by Remould"/>
+
+    </LinearLayout>
+
+    <ernestoyaquello.com.verticalstepperform.VerticalStepperFormView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/stepper_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:form_circle_background_color="@color/purple_700"
+        app:form_next_button_background_color="@color/purple_500"
+        app:form_next_button_pressed_background_color="@color/purple_700"
+        android:layout_below="@+id/kjusma"
+        />
+
+
+</RelativeLayout>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.suggestions.FragmentSuggestionsForLetsTalk">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/lkos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="10dp">
+
+            <!--The RecyclerView for the commentary-->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/images_list"
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/lkos2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="10dp"
+            android:layout_below="@id/lkos">
+
+            <!--The RecyclerView for the commentary-->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/video_list"
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+
+        </androidx.cardview.widget.CardView>
+
+
+        <!--The RecyclerView for the commentary-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/new_media_facts_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lkos2" />
+
+
+
+        <include layout="@layout/sharedialog_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"/>
+
+
+    </RelativeLayout>
+
+
+</FrameLayout>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
+    android:elevation="5dp"
+    android:id="@+id/rootview">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+
+            <FrameLayout
+                android:background="@drawable/card_edge"
+                android:layout_width="4dp"
+                android:layout_height="match_parent"/>
+
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="0dp">
+
+            <!--Signals to the reader this is a suggestion-->
+            <TextView
+                android:id="@+id/another_topic_suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="Another Topic/News Event"
+                android:textColor="@color/purple_700"
+                android:textSize="11dp"
+                />
+
+            <!--The commentator's name-->
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="Raymond Mdunge/News Source"
+                android:textSize="11dp"
+                android:textColor="@color/red"
+                />
+
+            <!--The small brief description-->
+            <TextView
+                android:id="@+id/description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Some text like news headline or head comment or topic"
+                android:textSize="12dp"
+                />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/action_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:background="@color/lightgray_extra"
+                    android:padding="7dp"
+                    android:text="TALK ABOUT THIS"
+                    android:textColor="@color/red"
+                    android:textSize="10dp"/>
+
+            </RelativeLayout>
+
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

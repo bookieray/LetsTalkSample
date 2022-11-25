@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/summary_area"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/comment_view"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <ProgressBar
+        android:id="@+id/loading_next_comments"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="7dp"
+        android:progressTint="@color/purple_700"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/purple_700"
+        android:visibility="gone"
+        />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/summary_area_card"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        app:cardBackgroundColor="@color/white"
+        android:layout_below="@id/loading_next_comments">
+
+        <TextView
+            android:id="@+id/summary_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="9 more(Tap)"
+            android:padding="5dp"
+            android:textColor="@color/purple_700"
+            android:textStyle="bold"
+            />
+
+    </androidx.cardview.widget.CardView>
+
+
+
+</RelativeLayout>

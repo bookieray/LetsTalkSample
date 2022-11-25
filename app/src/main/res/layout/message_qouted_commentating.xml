@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/replied_area"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/message_qoute_background_s"
+    android:orientation="vertical"
+
+    android:padding="7dp"
+    android:layout_marginLeft="15dp"
+    android:visibility="gone"
+    >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/agree_disagree_flag"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:background="@color/purple_700"
+            />
+
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginLeft="5dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/replied_comment_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Replied to Raymond Mdunge"
+                        android:textStyle="bold"
+                        android:textSize="13dp"
+
+                        />
+
+                    <TextView
+                        android:id="@+id/comment_type_commentating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Agrees"
+                        android:textStyle="bold"
+                        android:textSize="12dp"
+                        android:textColor="@color/purple_700"
+                        />
+
+                </LinearLayout>
+
+
+                <RelativeLayout
+                    android:id="@+id/cancel_button_reply"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible">
+
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignParentRight="true"
+                        app:srcCompat="@drawable/ic_baseline_close_24" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+
+
+
+
+            <!-- sample xml -->
+            <com.ms.square.android.expandabletextview.ExpandableTextView
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/qouted_comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                expandableTextView:maxCollapsedLines="2"
+                expandableTextView:animDuration="200">
+
+                <hani.momanii.supernova_emoji_library.Helper.EmojiconTextView
+                    android:id="@id/expandable_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hypertension is a disease to take seriously"
+                    android:textStyle="bold"
+                    android:textSize="14dp"
+
+                    />
+
+                <ImageButton
+                    android:id="@id/expand_collapse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+
+                    android:layout_gravity="right|bottom"/>
+
+            </com.ms.square.android.expandabletextview.ExpandableTextView>
+
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

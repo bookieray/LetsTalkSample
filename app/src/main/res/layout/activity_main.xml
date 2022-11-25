@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/rootview"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    xmlns:card_view="http://schemas.android.com/tools"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
+    android:background="@color/lightgray_extra"
+    >
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!--The Standalone activity for the standalone conversation/not as a fragment-->
+
+                    <!--The head-->
+                    <!--MultiWaveHeader, CardView -> FloatingActionButton (Back Button), TextView -> title-->
+                    <FrameLayout
+                        android:id="@+id/uystra"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.scwang.wave.MultiWaveHeader
+                            android:id="@+id/waveHeader"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:layout_alignParentTop="true"
+                            app:mwhCloseColor="@color/baselight_extra"
+                            app:mwhStartColor="@color/baselight"
+                            app:mwhWaveHeight="60dp" />
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/topPanel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_margin="10dp"
+                            card_view:cardBackgroundColor="@color/white"
+                            card_view:cardCornerRadius="4dp"
+
+                            >
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <FrameLayout
+                                    android:layout_width="4dp"
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/card_edge" />
+
+                                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                    android:id="@+id/back_but"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:src="@drawable/baseline_keyboard_arrow_left_black_24dp"
+                                    app:backgroundTint="@color/white"
+                                    app:fabSize="mini" />
+
+                                <androidx.appcompat.widget.Toolbar
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"></androidx.appcompat.widget.Toolbar>
+
+                                <RelativeLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content">
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+
+                                        android:layout_marginLeft="60dp"
+                                        android:layout_marginTop="3dp"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:id="@+id/label"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingRight="5dp"
+                                            android:text="0123456789012345678901234567890123456789012345678901234567890123456789"
+                                            android:textStyle="bold" />
+
+                                        <TextView
+                                            android:id="@+id/title"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingBottom="10dp"
+                                            android:text="LEARN MORE"
+                                            android:textColor="@color/red"
+                                            android:textSize="17dp" />
+
+                                    </LinearLayout>
+
+                                </RelativeLayout>
+
+
+                            </FrameLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </FrameLayout>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/media_reference_area"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/uystra"
+                        android:layout_margin="10dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <!--The LinearLayout -> Media Reference Area-->
+                            <TextView
+                                android:id="@+id/reference_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="10dp"
+                                android:paddingBottom="10dp"
+                                android:text="ACTIVITY/MEDIA REFERENCE"
+                                android:textColor="@color/purple_700"
+                                android:textSize="16dp" />
+
+                            <LinearLayout
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/reference_label"
+                                android:layout_centerHorizontal="true"
+                                android:orientation="vertical">
+
+
+                                <include layout="@layout/reference" />
+
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+
+                                    <TextView
+                                        android:id="@+id/read_more_reference"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerHorizontal="true"
+                                        android:background="@color/lightgray_extra"
+                                        android:padding="7dp"
+                                        android:text="READ MORE"
+                                        android:textColor="@color/red" />
+
+                                </RelativeLayout>
+
+
+                            </LinearLayout>
+
+                        </RelativeLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+
+                    <!--The LinearLayout -> The Content Area (The conversation)-->
+                    <!--<TextView
+                        android:id="@+id/content_area_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/media_reference_area"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:text="THE CONVERSATION"
+                        android:textColor="@color/purple_700"
+                        android:textSize="16dp"
+                        android:textStyle="bold"/>-->
+
+                    <LinearLayout
+                        android:id="@+id/content_area"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/media_reference_area"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:orientation="vertical">
+
+
+                        <com.google.android.material.tabs.TabLayout
+                            android:id="@+id/tabs"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.tabs.TabItem
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Current Topic" />
+
+                            <com.google.android.material.tabs.TabItem
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="More Topics" />
+
+                            <com.google.android.material.tabs.TabItem
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="News/Facts" />
+
+                        </com.google.android.material.tabs.TabLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:background="#737272" />
+
+                        <androidx.viewpager2.widget.ViewPager2
+                            android:id="@+id/content_pager"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="80dp" />
+
+
+                    </LinearLayout>
+
+
+                </RelativeLayout>
+
+
+            </androidx.core.widget.NestedScrollView>
+
+            <!--The Typing text area-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+                <include layout="@layout/message_qouted"
+                    android:layout_marginLeft="70dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:id="@+id/typing_area"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:background="@color/white"
+                    android:orientation="horizontal"
+
+                    >
+
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/next_item"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2dp"
+                        android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                        app:backgroundTint="@color/white"
+                        app:fabSize="mini" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+
+                        >
+
+                        <LinearLayout
+                            android:id="@+id/news_suggestion_or_comment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/reference_title_news"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Kevin Samuels died in his home"
+                                android:textSize="16dp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/reference_source_news"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DAILY NEWS"
+                                android:textColor="@color/red"
+                                android:textSize="14dp"
+                                android:textStyle="bold" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!--<Spinner
+                                android:id="@+id/typing_comment_type"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:entries="@array/letstalk_types"
+                                android:visibility="gone"/>-->
+
+
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:id="@+id/attach_media_button"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginTop="8dp"
+                                app:srcCompat="@drawable/ic_baseline_attach_file_24"
+                                app:tint="@color/black" />
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <hani.momanii.supernova_emoji_library.Helper.EmojiconEditText
+                                    android:id="@+id/emojicon_edit_text"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginRight="70dp"
+                                    android:hint="What's Your Take? "
+                                    android:textSize="15dp"
+                                    emojicon:emojiconSize="28sp" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentRight="true"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:id="@+id/emoji_button"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:srcCompat="@drawable/ic_baseline_insert_emoticon_24" />
+
+
+                                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                        android:id="@+id/send_button"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:foregroundTint="@color/white"
+                                        android:src="@drawable/ic_baseline_send_24"
+                                        android:tint="@color/white"
+                                        app:backgroundTint="@color/white"
+                                        app:fabSize="mini" />
+
+                                </LinearLayout>
+
+
+                            </RelativeLayout>
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+        </RelativeLayout>
+
+    </FrameLayout>
+
+
+</RelativeLayout>

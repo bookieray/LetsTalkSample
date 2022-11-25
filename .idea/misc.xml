@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/ic_reply_black_24dp.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/left_tv_bg.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/message_qoute_background.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/message_qoute_background_s.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/right_tv_bg.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_lets_talk_manage_each.xml" value="0.22" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_play_video.xml" value="0.11979166666666667" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_select_image_from_web.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/agree_comment.xml" value="0.25" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/dialog_video_list.xml" value="0.10677083333333333" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/dialog_webview_readnews.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/disagree_comment.xml" value="0.22" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/exo.xml" value="0.10552536231884058" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fact_layout.xml" value="0.33" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_all_topics_for_convo.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_convo_threads.xml" value="0.10552536231884058" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_current_topic.xml" value="0.12552083333333333" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_current_topic_for_convo.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_news_media.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_suggestions_for_lets_talk.xml" value="0.22" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/head_comment_view.xml" value="0.21" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/image_news_facf.xml" value="0.10960144927536232" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/image_share_preview.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/item_video_media_item.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/item_video_media_item_loading.xml" value="0.15670289855072464" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/loading_progress.xml" value="0.16822916666666668" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/loading_view.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/message_qouted.xml" value="0.25" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/message_qouted_commentating.xml" value="0.25" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/missing_data.xml" value="0.11911231884057971" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/news_media_layout.xml" value="0.25" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/num_online_convo.xml" value="0.16822916666666668" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/question_comment.xml" value="0.21" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/right_comment.xml" value="0.10552536231884058" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/sharedialog_view.xml" value="0.18" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/summary_area.xml" value="0.1" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/timestamp_layout.xml" value="0.18" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/typing_area.xml" value="0.3990228013029316" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/user_comment.xml" value="0.10552536231884058" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/aab1.xml" value="0.116" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/card_edge.xml" value="0.142" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/left_tv_bg.xml" value="0.1355" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/drawable/right_tv_bg.xml" value="0.1355" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_capture_info1.xml" value="0.12360688956433637" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/activity_select_video_from_web.xml" value="0.11676798378926039" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/another_topic.xml" value="0.33" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/comment_bubble.xml" value="0.33" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/dialog_webview_readnews.xml" value="0.1" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/form_select_country.xml" value="0.1" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/form_select_org_type.xml" value="0.1" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_current_topic.xml" value="0.1" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/fragment_suggestions_for_lets_talk.xml" value="0.12360688956433637" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/head_comment_view.xml" value="0.22" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/new_item.xml" value="0.25" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/reference.xml" value="0.21422101449275363" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/LetsTalkSample/app/src/main/res/layout/user_comment.xml" value="0.5" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

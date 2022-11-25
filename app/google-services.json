@@ -1,0 +1,163 @@
+{
+  "project_info": {
+    "project_number": "484443541746",
+    "firebase_url": "https://bookie-1d7b1-default-rtdb.firebaseio.com",
+    "project_id": "bookie-1d7b1",
+    "storage_bucket": "bookie-1d7b1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484443541746:android:d1a17bc54bf7328e36406b",
+        "android_client_info": {
+          "package_name": "brainwind.letstalksample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484443541746-d5atqkhbqc03cqo33jt54ns04mmo00i3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "brainwind.letstalksample",
+            "certificate_hash": "2cad34df363f1f1ca40830f05b5110b2cb01fefd"
+          }
+        },
+        {
+          "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl_wqRLBJN7EokskNcogtK5LMvvjn9Q-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484443541746:android:1f5b1cc65987094e36406b",
+        "android_client_info": {
+          "package_name": "remould.bookie"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484443541746-fuosre9mt2qeh065ahd3v4tu7m9attsp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.bookie",
+            "certificate_hash": "3379867d7054ff7af160d186e474073ed203bf46"
+          }
+        },
+        {
+          "client_id": "484443541746-gc5p905628g0b5qs3d81t25acq2ah8se.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.bookie",
+            "certificate_hash": "9050bb377525140fdf5124c6bb59d0f13028efc1"
+          }
+        },
+        {
+          "client_id": "484443541746-rn4kc6tr8ho6slsqj62dhers0m0g6i4n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.bookie",
+            "certificate_hash": "f7baddf43dce43b63d4161038fc245f099565f8c"
+          }
+        },
+        {
+          "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl_wqRLBJN7EokskNcogtK5LMvvjn9Q-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-7219035152009997~3188116911"
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484443541746:android:9af7ece9ade24c6836406b",
+        "android_client_info": {
+          "package_name": "remould.org.bookie"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484443541746-a5502gd03kap7clktkb26qnp6jvftej6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.org.bookie",
+            "certificate_hash": "e7a24eb380ef67aaf8777d06c5e036519f8ed835"
+          }
+        },
+        {
+          "client_id": "484443541746-ab6ttcjr1ok7alcrip6i83rbn678hss6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.org.bookie",
+            "certificate_hash": "a12c173230d2def3d2b978b0ba87d4147557c199"
+          }
+        },
+        {
+          "client_id": "484443541746-ik63nmuo9eqcbounj0t0rb8eggraovap.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.org.bookie",
+            "certificate_hash": "9050bb377525140fdf5124c6bb59d0f13028efc1"
+          }
+        },
+        {
+          "client_id": "484443541746-qr2fqf6c1fok2apvrkusu6fb8s86e2et.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "remould.org.bookie",
+            "certificate_hash": "9130f570edf7d282a678a93f19f1055bbd8d2761"
+          }
+        },
+        {
+          "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl_wqRLBJN7EokskNcogtK5LMvvjn9Q-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

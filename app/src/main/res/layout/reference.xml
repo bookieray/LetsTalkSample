@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp">
+
+    <FrameLayout
+        android:layout_width="100dp"
+        android:layout_height="85dp"
+        >
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/media_attachment"
+                android:layout_width="100dp"
+                android:layout_height="85dp"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/image_placeholder" />
+
+            <FrameLayout
+                android:id="@+id/play_button_area"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:srcCompat="@drawable/ic_baseline_play_circle_filled_24"
+                android:layout_centerInParent="true"
+                android:background="@color/glass"
+                android:visibility="gone">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        app:srcCompat="@drawable/ic_baseline_play_circle_filled_24"
+                        android:layout_centerInParent="true"/>
+
+
+                </RelativeLayout>
+
+            </FrameLayout>
+
+
+        </RelativeLayout>
+
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginLeft="5dp">
+
+        <TextView
+            android:id="@+id/reference_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kevin Samuels died in his home"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/reference_source"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DAILY NEWS"
+            android:textColor="@color/red"
+            android:textSize="14dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/reference_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NEWS/ACTIVITY TYPE"
+            android:textColor="@color/purple_700"
+            android:textSize="14dp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>
