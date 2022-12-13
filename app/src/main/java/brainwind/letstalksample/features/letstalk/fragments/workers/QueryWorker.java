@@ -376,7 +376,7 @@ public class QueryWorker
                 .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
                 .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
 
-
+        Log.i("beforeCommentx","b="+(beforeComment !=null));
         if(afterComment!=null)
         {
             android.text.format.DateFormat df = new android.text.format.DateFormat();
@@ -399,7 +399,7 @@ public class QueryWorker
             android.text.format.DateFormat df = new android.text.format.DateFormat();
             String output=df.format("yyyy-MM-dd hh:mm:ss a", beforeComment.getCreatedDate())
                     .toString();
-            Log.i("beforeComment",output);
+            Log.i("beforeCommentx",output);
             query= CloudWorker.getLetsTalkComments()
                     .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
                     .whereEqualTo(OrgFields.PARENT_COMMENT_ID,head_comment.getComment_id())

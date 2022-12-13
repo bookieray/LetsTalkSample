@@ -13,8 +13,8 @@ public interface CommentCommunications
     void ShowMoreHeadComments();
     void ChangeHeadComment(Comment headcomment);
     void onFailureToFetchTimestamps(Comment headcomment,String errorMessage);
-    void onFailureToFetchTimestampComments(Comment headcomment,String errorMessage,int workerID);
-    void onSuccessfulFetchTimestampComments(QuerySnapshot queryDocumentSnapshots, int workerID);
+    void onFailureToFetchTimestampComments(Comment headcomment,String errorMessage,String timestamp,int workerID);
+    void onSuccessfulFetchTimestampComments(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID);
     void TimeStampsForHeadComment(Comment headcomment, ArrayList<Comment> timestampList);
 
 }

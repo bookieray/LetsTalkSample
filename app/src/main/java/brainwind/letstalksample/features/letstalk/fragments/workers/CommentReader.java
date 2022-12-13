@@ -110,7 +110,7 @@ public class CommentReader extends QueryWorker{
             query=getQueryForQuestionWithHeadComment(timestamp_comment);
         }
 
-        runQuery(query);
+        runQuery(query,timestamp);
 
     }
     public void getCommentsForTimestampCommentTypeBefore(Comment headcomment,String timestamp,int comment_type,Comment beforedatecomment) throws Exception {
@@ -176,7 +176,7 @@ public class CommentReader extends QueryWorker{
             query=getQueryForQuestionWithHeadComment(timestamp_comment);
         }
 
-        runQuery(query);
+        runQuery(query,timestamp);
 
     }
     public void getCommentsForTimestampCommentTypeAfter(Comment headcomment,String timestamp,int comment_type,Comment afterdatecomment) throws Exception {
@@ -242,7 +242,7 @@ public class CommentReader extends QueryWorker{
             query=getQueryForQuestionWithHeadComment(timestamp_comment);
         }
 
-        runQuery(query);
+        runQuery(query,timestamp);
 
     }
 
@@ -261,7 +261,7 @@ public class CommentReader extends QueryWorker{
         return this.id;
     }
 
-    public void runQuery(Query query)
+    public void runQuery(Query query,String timestamp)
     {
 
         Log.i("onshjj","runQuery");
@@ -271,7 +271,7 @@ public class CommentReader extends QueryWorker{
                     public void onFailure(@NonNull Exception e) {
 
                         Log.i("onshjj","onFailure");
-                        failedToGet(e,getWorkerID());
+                        failedToGet(e,timestamp,getWorkerID());
 
                     }
                 })
@@ -281,7 +281,7 @@ public class CommentReader extends QueryWorker{
 
                         finishedFirstRequest=true;
                         Log.i("onshjj","onSuccess");
-                        successFullRead(queryDocumentSnapshots,getWorkerID());
+                        successFullRead(queryDocumentSnapshots,timestamp,getWorkerID());
 
                     }
                 });
@@ -292,12 +292,12 @@ public class CommentReader extends QueryWorker{
         return finishedFirstRequest;
     }
 
-    public void successFullRead(QuerySnapshot queryDocumentSnapshots, int workerID)
+    public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID)
     {
 
     }
 
-    public void failedToGet(Exception e, int workerID)
+    public void failedToGet(Exception e,String timestamp, int workerID)
     {
 
 

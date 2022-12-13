@@ -35,6 +35,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
     String conversation_id="";
     private int last;
 
+
     public CommentWorker(String conversation_id,Fragment currentTopicFragment) {
         super(conversation_id,currentTopicFragment);
         this.currentTopicFragment=currentTopicFragment;
@@ -108,7 +109,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
     }
 
     @Override
-    public void onFailureToFetchTimestampComments(Comment headcomment,String errorMessage,int workerID)
+    public void onFailureToFetchTimestampComments(Comment headcomment,String errorMessage,String timestamp,int workerID)
     {
 
         Log.i("onshjj","onFailureToFetchTimestampComments workerID="+workerID+" "+errorMessage);
@@ -116,16 +117,33 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
     }
 
     @Override
-    public void onSuccessfulFetchTimestampComments(QuerySnapshot queryDocumentSnapshots, int workerID)
+    public void onSuccessfulFetchTimestampComments(QuerySnapshot queryDocumentSnapshots,String timestampx, int workerID)
     {
 
-        Log.i("onshjj","onSuccessfulFetchTimestampComments workerID="+workerID);
+
+        commentAdapter.is_loading=false;
+        Log.i("onshjj","onSuccessfulFetchTimestampComments workerID="+workerID+" "+queryDocumentSnapshots.isEmpty());
         if(queryDocumentSnapshots.isEmpty()==false)
         {
 
+            if(queryDocumentSnapshots.getDocuments().size()<10)
+            {
+                if(workerID==CommentReader.PAGINATION_PREV)
+                {
+                    commentAdapter.no_more_comments_previous.put(timestampx,true);
+                    commentAdapter.notifyDataSetChanged();
+                }
+                if(workerID==CommentReader.PAGINATION_NEXT||workerID==CommentReader.INITIAL
+                        ||workerID==CommentReader.LINK_RESUME)
+                {
+                    commentAdapter.no_more_comments_next.put(timestampx,true);
+                    commentAdapter.notifyDataSetChanged();
+                }
+            }
             DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(0);
             Comment comment=new Comment(documentSnapshot);
-            final String timestamp=comment.getTimestamp();
+            final String timestamp=timestampx;
+            Log.i("onshjj",timestamp);
 
             UserInfoDatabase.databaseWriteExecutor
                     .execute(new Runnable() {
@@ -134,19 +152,38 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
 
                             int timestamp_pos=-1;
                             int last_pos_comment_in_timestamp=-1;
+
                             for(int i=0;i<commentAdapter.commentListUnderHeadComment.size();i++)
                             {
 
                                 Comment comment1=commentAdapter.commentListUnderHeadComment.get(i);
+                                Comment comment=new Comment(documentSnapshot);
+                                if(commentAdapter.started_loading_older_coments.containsKey(comment.getTimestamp()))
+                                {
+                                    commentAdapter.started_loading_older_coments.remove(comment.getTimestamp());
+                                }
+                                if(commentAdapter.started_loading_next_coments.containsKey(comment.getTimestamp()))
+                                {
+                                    commentAdapter.started_loading_next_coments.remove(comment.getTimestamp());
+                                }
 
-                                if(comment1.getTimestamp().equals(timestamp)&comment1.isIs_timestamp())
+                                if(workerID==CommentReader.PAGINATION_PREV&comment1.getTimestamp().equals(timestamp)&comment1.isIs_timestamp())
+                                {
+                                    Log.i("ossaxj","t="+timestamp+" t2="+comment1.getTimestamp()+" "+comment1.isIs_timestamp()
+                                            +" "+comment1.getTimestamp().equals(timestamp)+" i="+i);
+                                }
+                                if(comment1.getTimestamp().equals(timestamp)&comment1.isIs_timestamp()&timestamp_pos==-1)
                                 {
                                     Log.i("sjdugas","i="+i);
-                                    if(workerID==CommentReader.INITIAL)
+                                    if(workerID==CommentReader.INITIAL||workerID==CommentReader.PAGINATION_PREV)
                                     {
                                         timestamp_pos=i;
-                                        addComments(queryDocumentSnapshots,timestamp_pos,last_pos_comment_in_timestamp,workerID);
-                                        break;
+                                        if(workerID==CommentReader.INITIAL)
+                                        {
+                                            addComments(queryDocumentSnapshots,timestamp_pos,last_pos_comment_in_timestamp,workerID);
+                                            break;
+                                        }
+
                                     }
 
                                 }
@@ -176,6 +213,21 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                     });
 
         }
+        else
+        {
+            if(workerID==CommentReader.PAGINATION_PREV)
+            {
+                commentAdapter.no_more_comments_previous.put(timestampx,true);
+                commentAdapter.notifyDataSetChanged();
+            }
+            if(workerID==CommentReader.PAGINATION_NEXT||workerID==CommentReader.INITIAL
+                    ||workerID==CommentReader.LINK_RESUME)
+            {
+                commentAdapter.no_more_comments_next.put(timestampx,true);
+                commentAdapter.notifyDataSetChanged();
+            }
+
+        }
 
     }
 
@@ -183,6 +235,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                              int last_pos_comment_in_timestamp,int workerID)
     {
 
+        commentAdapter.is_loading=false;
         int start_add=0;
         if(positionOfTimeStamp+1<commentAdapter.commentListUnderHeadComment.size()&positionOfTimeStamp>-1)
         {
@@ -210,23 +263,51 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
         }
 
         final int yj=start_add;
-        Log.i("msudjaps",queryDocumentSnapshots.getDocuments().size()+" documents");
-        if(workerID==CommentReader.INITIAL)
+        Log.i("msudjaps",queryDocumentSnapshots.getDocuments().size()+" documents workerID="+workerID+" "+positionOfTimeStamp);
+        if(workerID==CommentReader.INITIAL||workerID==CommentReader.PAGINATION_PREV)
         {
 
             DocumentSnapshot documentSnapshotx=queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.getDocuments().size()-1);
             Comment commentx=new Comment(documentSnapshotx);
+            Comment commentxs=commentAdapter.commentListUnderHeadComment.get(positionOfTimeStamp);
+            if(commentxs.getComment().isEmpty())
+            {
+                Log.i("ydusxefas","timestamp is isEmpty "+positionOfTimeStamp+" last="+commentx.getComment());
+            }
+            else
+            {
+                Log.i("ydusxefas","timestamp is not isEmpty "+positionOfTimeStamp+" "+commentxs.getComment()+" last="+commentx.getComment());
+                if(positionOfTimeStamp+1<commentAdapter.commentListUnderHeadComment.size())
+                {
+                    commentAdapter.commentListUnderHeadComment.set(positionOfTimeStamp,commentx);
+                    commentAdapter.commentListUnderHeadComment.add(positionOfTimeStamp+1,commentxs);
+                }
+            }
             commentAdapter.commentListUnderHeadComment.set(positionOfTimeStamp,commentx);
 
             for(int i=0;i<queryDocumentSnapshots.getDocuments().size();i++)
             {
 
+                DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(i);
+                Comment comment=new Comment(documentSnapshot);
+                Log.i("losjdhka",comment.getComment()+" "+comment.getTimeStr()+" "+queryDocumentSnapshots.getDocuments().size());
+                Log.i("mdiahdla",comment.getTimestamp()
+                        +" "+commentAdapter.started_loading_older_coments.containsKey(comment.getTimestamp())
+                        +" "+commentAdapter.started_loading_next_coments.containsKey(comment.getTimestamp()));
+
+                if(commentAdapter.started_loading_older_coments.containsKey(comment.getTimestamp()))
+                {
+                    commentAdapter.started_loading_older_coments.remove(comment.getTimestamp());
+                }
+                if(commentAdapter.started_loading_next_coments.containsKey(comment.getTimestamp()))
+                {
+                    commentAdapter.started_loading_next_coments.remove(comment.getTimestamp());
+                }
                 if(i==queryDocumentSnapshots.getDocuments().size()-1)
                 {
                     continue;
                 }
-                DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(i);
-                Comment comment=new Comment(documentSnapshot);
+
                 if(commentAdapter.timestamps_comments.containsKey(comment.getTimestamp()))
                 {
                     ArrayList<Comment> ystd=commentAdapter.timestamps_comments.get(comment.getTimestamp());
@@ -239,20 +320,12 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                     ystd.add(comment);
                     commentAdapter.timestamps_comments.put(comment.getTimestamp(),ystd);
                 }
-                if(commentAdapter.started_loading_older_coments.containsKey(comment.getTimestamp()))
-                {
-                    commentAdapter.started_loading_older_coments.remove(comment.getTimestamp());
-                }
-                if(commentAdapter.started_loading_next_coments.containsKey(comment.getTimestamp()))
-                {
-                    commentAdapter.started_loading_next_coments.remove(comment.getTimestamp());
-                }
+
 
                 if(i==queryDocumentSnapshots.getDocuments().size()-1)
                 {
                     commentAdapter.commentListUnderHeadComment.set(positionOfTimeStamp,comment);
-                    Log.i("msudjaps","1 i="+i+" day="+comment.getDay()+" month="+comment.getMonth()+" year="+comment.getYear()
-                            +" "+comment.getDateStr()+" yj="+yj+" "+positionOfTimeStamp);
+                    Log.i("msudjaps","1 i="+i+comment.getTimestamp()+" yj="+yj+" "+positionOfTimeStamp);
                 }
                 else if(start_add<commentAdapter.commentListUnderHeadComment.size())
                 {
@@ -260,20 +333,20 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                     {
                         commentAdapter.commentListUnderHeadComment.set(positionOfTimeStamp,comment);
                         Log.i("msudjaps","2 i="+i+" day="+comment.getDay()+" month="+comment.getMonth()+" year="+comment.getYear()
-                                +" "+comment.getDateStr()+" yj="+yj+" "+positionOfTimeStamp);
+                                +" "+comment.getDateTimeStr()+" yj="+yj+" "+positionOfTimeStamp);
                     }
                     else
                     {
                         commentAdapter.commentListUnderHeadComment.add(start_add,comment);
                         Log.i("msudjaps","3 i="+i+" day="+comment.getDay()+" month="+comment.getMonth()+" year="+comment.getYear()
-                                +" "+comment.getDateStr()+" yj="+yj+" "+positionOfTimeStamp);
+                                +" "+comment.getDateTimeStr()+" yj="+yj+" "+positionOfTimeStamp);
                     }
                 }
                 else
                 {
                     commentAdapter.commentListUnderHeadComment.add(comment);
                     Log.i("msudjaps","4 i="+i+" day="+comment.getDay()+" month="+comment.getMonth()+" year="+comment.getYear()
-                            +" "+comment.getDateStr()+" yj="+yj+" "+positionOfTimeStamp);
+                            +" "+comment.getDateTimeStr()+" yj="+yj+" "+positionOfTimeStamp);
                 }
 
             }
@@ -284,6 +357,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                         @Override
                         public void run() {
 
+                            commentAdapter.currentLoadingTimestampLabel="";
                             commentAdapter.notifyDataSetChanged();
                             if(comment_list==null)
                             {
@@ -464,6 +538,37 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                 },200);
 
             }
+        }
+
+    }
+
+
+    private BeforeComments beforeComments;
+    public void getCommentsBeforeComment(Comment comment, int position)
+    {
+
+        if(beforeComments==null)
+        {
+            if(comment_filter==null)
+            {
+                comment_filter=getRootView().findViewById(R.id.comment_filter);
+            }
+
+            beforeComments=new BeforeComments(conversation_id,currentTopicFragment);
+            beforeComments.setBeforeComment(comment);
+            beforeComments.beforeComment=comment;
+            beforeComments.setCurrentTopicForConvo(currentTopicForConvo);
+
+
+
+
+        }
+
+        try {
+            beforeComments.getCommentsForTimestampCommentTypeBefore(getHead_comment(),comment.getTimestamp()
+                    ,comment_filter.getSelectedItemPosition(),comment);
+        } catch (Exception e) {
+
         }
 
     }

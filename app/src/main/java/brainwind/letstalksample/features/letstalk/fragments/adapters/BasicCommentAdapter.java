@@ -120,7 +120,7 @@ public class BasicCommentAdapter extends TimestampCommentAdapter
                 if(comment.isSent())
                 {
                     holder.sent_status.setImageDrawable(holder.comment_name.getContext()
-                            .getResources().getDrawable(R.drawable.ic_baseline_done_all_24));
+                            .getResources().getDrawable(R.drawable.ic_baseline_done_24));
                     holder.sent_status.setVisibility(View.VISIBLE);
 
                     if(comment.getNumOFCommentsRead()>0)
@@ -143,9 +143,15 @@ public class BasicCommentAdapter extends TimestampCommentAdapter
             if(comment.isSent())
             {
                 Glide.with(holder.comment_view.getContext())
-                        .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_all_24))
+                        .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_24))
                         .into(holder.sent_status);
 
+                if(comment.getNumOFCommentsRead()>0)
+                {
+                    Glide.with(holder.comment_view.getContext())
+                            .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_all_24))
+                            .into(holder.sent_status);
+                }
 
 
             }

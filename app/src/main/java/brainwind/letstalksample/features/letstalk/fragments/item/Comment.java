@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.Map;
 
 import brainwind.letstalksample.data.database.OrgFields;
-import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo;
 
 public class Comment
 {
@@ -827,11 +826,13 @@ public class Comment
     }
 
     public int getDay() {
-        if(this.getCreatedDate()!=null&this.day<1
-                ||this.getCreatedDate()!=null&this.day>31)
+        if(this.getCreatedDate()!=null)
         {
             LocalDateTime localDateTime=new LocalDateTime(this.getCreatedDate());
-            this.day=localDateTime.getDayOfMonth();
+            if(localDateTime.getDayOfMonth()!=this.day)
+            {
+                this.day=localDateTime.getDayOfMonth();
+            }
         }
         return day;
     }
@@ -842,11 +843,13 @@ public class Comment
 
     public int getMonth() {
 
-        if(this.getCreatedDate()!=null&this.month<1
-                ||this.getCreatedDate()!=null&this.month>12)
+        if(this.getCreatedDate()!=null)
         {
             LocalDateTime localDateTime=new LocalDateTime(this.getCreatedDate());
-            this.month=localDateTime.getMonthOfYear();
+            if(localDateTime.getMonthOfYear()!=this.month)
+            {
+                this.month=localDateTime.getMonthOfYear();
+            }
         }
 
         return month;
@@ -857,6 +860,14 @@ public class Comment
     }
 
     public int getYear() {
+        if(this.getCreatedDate()!=null)
+        {
+            LocalDateTime localDateTime=new LocalDateTime(this.getCreatedDate());
+            if(localDateTime.getYear()!=this.year)
+            {
+                this.year=localDateTime.getYear();
+            }
+        }
         return year;
     }
 
@@ -1191,7 +1202,17 @@ public class Comment
         this.numOFCommentsRead = numOFCommentsRead;
     }
 
-    public String getDateStr()
+    public String getDateTimeStr()
+    {
+
+        android.text.format.DateFormat df =
+                new android.text.format.DateFormat();
+        String outputx1=df.format("LLL dd,E yyyy hh:mm:ss a",
+                        this.getCreatedDate())
+                .toString();
+        return outputx1;
+    }
+    public String getTimeStr()
     {
 
         android.text.format.DateFormat df =
@@ -1201,6 +1222,18 @@ public class Comment
                 .toString();
         return outputx1;
     }
+    public String getDateStr()
+    {
+
+        android.text.format.DateFormat df =
+                new android.text.format.DateFormat();
+        String outputx1=df.format("LLL dd,E yyyy",
+                        this.getCreatedDate())
+                .toString();
+        return outputx1;
+    }
+
+
 
 }
 

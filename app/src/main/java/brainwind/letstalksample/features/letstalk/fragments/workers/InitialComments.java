@@ -26,15 +26,15 @@ public class InitialComments extends CommentReader
 
 
     @Override
-    public void failedToGet(Exception e, int workerID) {
-        super.failedToGet(e, workerID);
+    public void failedToGet(Exception e,String timestamp,  int workerID) {
+        super.failedToGet(e,timestamp, workerID);
 
         if(getCommentWorkerFromFragment()!=null)
         {
             CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
             if(commentCommunications!=null)
             {
-                commentCommunications.onFailureToFetchTimestampComments(getHead_comment(),e.getMessage(),workerID);
+                commentCommunications.onFailureToFetchTimestampComments(getHead_comment(),e.getMessage(),timestamp,workerID);
             }
         }
         else
@@ -45,15 +45,15 @@ public class InitialComments extends CommentReader
     }
 
     @Override
-    public void successFullRead(QuerySnapshot queryDocumentSnapshots, int workerID) {
-        super.successFullRead(queryDocumentSnapshots, workerID);
+    public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID) {
+        super.successFullRead(queryDocumentSnapshots,timestamp, workerID);
 
         if(getCommentWorkerFromFragment()!=null)
         {
             CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
             if(commentCommunications!=null)
             {
-                commentCommunications.onSuccessfulFetchTimestampComments(queryDocumentSnapshots,workerID);
+                commentCommunications.onSuccessfulFetchTimestampComments(queryDocumentSnapshots,timestamp,workerID);
             }
         }
         else

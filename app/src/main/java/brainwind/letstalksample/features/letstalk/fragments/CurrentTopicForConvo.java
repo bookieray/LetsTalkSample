@@ -103,6 +103,7 @@ import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 import brainwind.letstalksample.features.letstalk.fragments.item.CommentDate;
 import brainwind.letstalksample.features.letstalk.fragments.item.MediaItemWebSearch;
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
+import brainwind.letstalksample.features.letstalk.fragments.workers.AfterComments;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentCommunications;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentWorker;
 import brainwind.letstalksample.utils.AndroidUtils;
@@ -549,6 +550,9 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                     +" "+comment.getMonth()
                     +" "+comment.getYear());
             //commentWorker.getCommentsUnderTimeStamp(comment,position);
+
+
+
         }
 
     }
@@ -574,6 +578,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                             before_comment.getCreatedDate())
                     .toString();
             Log.i("getNxtTimeStp",output);
+            commentWorker.getCommentsBeforeComment(before_comment,position);
             //commentWorker.getCommentsUnderTimeStamp(timestamp_comment,position);
         }
 

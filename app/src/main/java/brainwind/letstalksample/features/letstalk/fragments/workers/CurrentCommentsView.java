@@ -332,7 +332,7 @@ public class CurrentCommentsView extends QueryWorker implements LoadingResults {
                 }
             }
             headCommentName=headCommentName.trim();
-            head_comment_name.setText(headCommentName);
+            head_comment_name.setText(headCommentName.trim());
             Log.i("muhgsfa","headCommentName="+headCommentName);
         }
 
