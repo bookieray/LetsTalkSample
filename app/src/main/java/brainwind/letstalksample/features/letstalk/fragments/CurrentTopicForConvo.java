@@ -5,6 +5,7 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE;
 import static androidx.recyclerview.widget.ItemTouchHelper.RIGHT;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -46,6 +47,9 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.airbnb.lottie.LottieAnimationView;
+import com.arthurivanets.bottomsheets.BaseBottomSheet;
+import com.arthurivanets.bottomsheets.config.BaseConfig;
+import com.arthurivanets.bottomsheets.config.Config;
 import com.avatarfirst.avatargenlib.AvatarGenerator;
 import com.bumptech.glide.Glide;
 import com.getkeepsafe.taptargetview.TapTarget;
@@ -54,6 +58,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -98,6 +103,7 @@ import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 import brainwind.letstalksample.features.letstalk.fragments.item.CommentDate;
 import brainwind.letstalksample.features.letstalk.fragments.item.MediaItemWebSearch;
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
+import brainwind.letstalksample.features.letstalk.fragments.workers.CommentCommunications;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentWorker;
 import brainwind.letstalksample.utils.AndroidUtils;
 import butterknife.BindView;
@@ -117,14 +123,14 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
     public static final String TSECONDS = "ts";
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String CONVO_ID = "param1";
-    private static final String TITLE = "param2";
-    private static final String IS_STANDALONE = "param3";
-    private static final String TIMEOFFSET = "param4";
+    public static final String CONVO_ID = "param1";
+    public static final String TITLE = "param2";
+    public static final String IS_STANDALONE = "param3";
+    public static final String TIMEOFFSET = "param4";
     public static final String STARTING_SIGNATURE = "param5";
 
     //CommentWorker
-    CommentWorker commentWorker=new CommentWorker();
+    CommentWorker commentWorker;
     public Comment reply_comment;
 
     public CurrentTopicForConvo() {
@@ -359,6 +365,8 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
 
     }
 
+    @BindView(R.id.view_more_headtopics)
+    FloatingActionButton view_more_headtopics;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -375,10 +383,69 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
         return view;
     }
 
+    private FloatingActionButton close_button_media_dialog;
+    private SimpleCustomBottomSheet bottomSheet;
+    @OnClick(R.id.view_more_headtopics)
+    void ViewMoreTopics()
+    {
+
+        bottomSheet = new SimpleCustomBottomSheet(getActivity());
+        bottomSheet.show();
+        close_button_media_dialog=(FloatingActionButton)bottomSheet
+                .findViewById(R.id.close_button_media_dialog);
+        close_button_media_dialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                bottomSheet.dismiss();
+
+            }
+        });
+
+    }
+
+
+    class SimpleCustomBottomSheet extends BaseBottomSheet {
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity) {
+            this(hostActivity, new Config.Builder(hostActivity).build());
+        }
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity, @NonNull BaseConfig config) {
+            super(hostActivity, config);
+        }
+
+        @NonNull
+        @Override
+        public final View onCreateSheetContentView(@NonNull Context context) {
+            View view=LayoutInflater.from(context).inflate(
+                    R.layout.more_topics,
+                    this,
+                    false
+            );
+
+            return view;
+        }
+
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         getHeadComment();
+    }
+
+    public CommentAdapter getCommentAdapter()
+    {
+        if(commentWorker==null)
+        {
+            Log.i("dhuasgs","commentWorker==null");
+            String conversation_id = this.getArguments()
+                    .getString(CONVO_ID);
+            commentWorker=new CommentWorker(conversation_id,this);
+        }
+        return commentWorker.getCommentAdapter();
     }
 
     private void getHeadComment()
@@ -386,12 +453,54 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
 
         if(commentWorker==null)
         {
-            commentWorker=new CommentWorker();
+            String conversation_id = this.getArguments()
+                    .getString(CONVO_ID);
+            String title = this.getArguments()
+                    .getString(TITLE);
+            boolean is_standalone = this.getArguments()
+                    .getBoolean(IS_STANDALONE);
+            commentWorker=new CommentWorker(conversation_id,CurrentTopicForConvo.this);
+            commentWorker.setTitle(title);
+            commentWorker.setIs_standalone(is_standalone);
+            if(commentWorker.getRootView()!=null)
+            {
+                Log.i("ydughas","1 rootview is not empty");
+
+                commentWorker.getHeadComment();
+                new CountDownTimer(4000,1000) {
+                    @Override
+                    public void onTick(long l) {
+
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        //commentWorker.ShowHeadCommentError("No Internet",commentWorker);
+                    }
+                }.start();
+
+            }
+            else
+            {
+                Log.i("ydughas","2 rootview is empty");
+            }
+
+        }
+        else
+        {
+            if(commentWorker.getRootView()!=null)
+            {
+                Log.i("ydughas","3 rootview is not empty");
+            }
+            else
+            {
+                Log.i("ydughas","4 rootview is empty");
+            }
         }
 
         if(commentWorker!=null)
         {
-            commentWorker.getHeadComment(this);
+            //commentWorker.getHeadComment(this);
         }
 
 
@@ -439,7 +548,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             Log.i("GetCommentsUnderTimstmp",comment.getDay()
                     +" "+comment.getMonth()
                     +" "+comment.getYear());
-            commentWorker.getCommentsUnderTimeStamp(comment,position);
+            //commentWorker.getCommentsUnderTimeStamp(comment,position);
         }
 
     }
@@ -458,14 +567,14 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             Log.i(timestamp,timestamp_comment.getDay()
                     +" "+timestamp_comment.getMonth()
                     +" "+timestamp_comment.getYear());
-            commentWorker.beforeComment=before_comment;
+            //commentWorker.beforeComment=before_comment;
             android.text.format.DateFormat df =
                     new android.text.format.DateFormat();
             String output=df.format("hh:mm:ss a",
                             before_comment.getCreatedDate())
                     .toString();
             Log.i("getNxtTimeStp",output);
-            commentWorker.getCommentsUnderTimeStamp(timestamp_comment,position);
+            //commentWorker.getCommentsUnderTimeStamp(timestamp_comment,position);
         }
 
     }
@@ -482,14 +591,14 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             Log.i(timestamp,timestamp_comment.getDay()
                     +" "+timestamp_comment.getMonth()
                     +" "+timestamp_comment.getYear());
-            commentWorker.afterComment=after_comment;
+            //commentWorker.afterComment=after_comment;
             android.text.format.DateFormat df =
                     new android.text.format.DateFormat();
             String output=df.format("hh:mm:ss a",
                             after_comment.getCreatedDate())
                     .toString();
             Log.i("getCommentsUnderTmeStmp",output);
-            commentWorker.getCommentsUnderTimeStamp(after_comment,position);
+            //commentWorker.getCommentsUnderTimeStamp(after_comment,position);
         }
 
     }
@@ -505,7 +614,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                 +"."+localDateTime.getHourOfDay()
                 +"."+localDateTime.getMinuteOfHour()
                 +"."+localDateTime.getSecondOfMinute();
-        Log.i("shareDayConvo","signStart="+signStart);
+        Log.i("isFromStartingSign","signStart="+signStart+" "+start_comment.getCreatedDate().getTime()+" ");
         if(getArguments()!=null)
         {
 
@@ -526,7 +635,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             }
 
             int recent_set_number=1;
-            if(commentWorker.timestamp_comments.containsKey(start_comment.getTimestamp()))
+            /*if(commentWorker.timestamp_comments.containsKey(start_comment.getTimestamp()))
             {
                 recent_set_number=commentWorker.timestamp_comments.get(start_comment.getTimestamp()).size();
             }
@@ -535,13 +644,20 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             {
                 more_previous=false;
             }
-            Log.i("msujash","convo_id="+convo_id+" "+title+" "+is_standalone
-                    +" start_comment_date="+signStart+" "+recent_set_number+" "+more_previous);
+            android.text.format.DateFormat df =
+                    new android.text.format.DateFormat();
+            String outputx1=df.format("hh:mm:ss a",
+                            start_comment.getCreatedDate())
+                    .toString();
+            Log.i("yusgajs",start_comment.getComment()+" "+start_comment.getDay()
+                    +" "+start_comment.getMonth()
+                    +" "+start_comment.getYear()
+                    +" "+outputx1);
 
             Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks
                     .getInstance()
                     .createDynamicLink()
-                    .setLink(Uri.parse("https://www.example.com/?"
+                    .setLink(Uri.parse("https://www.bookie.remould.co.za/?"
                             +"convo_id="+convo_id+
                             "&is_st="+is_standalone
                             +"&stc="+signStart
@@ -604,6 +720,9 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                     });
 
 
+             */
+
+
         }
 
 
@@ -611,7 +730,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
 
     @Override
     public void OnCancelReply() {
-        commentWorker.replyCommentWorker=null;
+        //commentWorker.replyCommentWorker=null;
         reply_comment=null;
 
     }
@@ -635,7 +754,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
 
     @Override
     public void ScrollTo(int position) {
-        if(commentWorker.comment_list!=null)
+        /*if(commentWorker.comment_list!=null)
         {
             commentWorker.comment_list.scrollToPosition(position);
             commentWorker.comment_list.postDelayed(new Runnable() {
@@ -645,7 +764,44 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                 }
             },200);
         }
+
+         */
     }
 
+    @Override
+    public void LeaveConvo() {
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+        /*if(this.commentWorker.head_comment==null&commentWorker.is_loading_headcomment==false)
+        {
+            Log.i("onResume","fragment resumed started getting head");
+            getHeadComment();
+        }
+        else
+        {
+            Log.i("onResume","fragment resumed not getting head");
+        }
+
+         */
+
+        if(commentWorker!=null)
+        {
+            commentWorker.onResume();
+        }
+
+    }
+
+    public CommentWorker getCommentWorker() {
+        return commentWorker;
+    }
+
+    public void setCommentWorker(CommentWorker commentWorker) {
+        this.commentWorker = commentWorker;
+    }
 }

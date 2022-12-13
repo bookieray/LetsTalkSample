@@ -34,6 +34,7 @@ import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.webkit.WebSettings;
@@ -56,6 +57,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.arthurivanets.bottomsheets.BaseBottomSheet;
+import com.arthurivanets.bottomsheets.config.BaseConfig;
+import com.arthurivanets.bottomsheets.config.Config;
 import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -207,7 +211,6 @@ public class LetsTalkManageEach extends AppCompatActivity
         }
         Log.i("and_life_cycle","onCreate estimatedServerTimeMs="
                 +estimatedServerTimeMs);
-
 
 
 
@@ -1703,6 +1706,7 @@ public class LetsTalkManageEach extends AppCompatActivity
         if(this.head_comment!=null)
         {
             Log.i("foundHeadComment","from Activity "+head_comment.getComment_id());
+
         }
 
     }
@@ -1988,6 +1992,11 @@ public class LetsTalkManageEach extends AppCompatActivity
 
     }
 
+    @Override
+    public void LeaveConvo() {
+        this.finish();
+    }
+
 
     private void monitorConnect()
     {
@@ -2093,8 +2102,37 @@ public class LetsTalkManageEach extends AppCompatActivity
 
     }
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
 
 
 
+    }
+
+
+    class SimpleCustomBottomSheet extends BaseBottomSheet {
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity) {
+            this(hostActivity, new Config.Builder(hostActivity).build());
+        }
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity, @NonNull BaseConfig config) {
+            super(hostActivity, config);
+        }
+
+        @NonNull
+        @Override
+        public final View onCreateSheetContentView(@NonNull Context context) {
+            View view= LayoutInflater.from(context).inflate(
+                    R.layout.view_simple_custom_bottom_sheet,
+                    this,
+                    false
+            );
+
+            return view;
+        }
+
+    }
 
 }

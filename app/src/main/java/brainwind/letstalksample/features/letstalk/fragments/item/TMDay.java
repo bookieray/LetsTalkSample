@@ -28,6 +28,31 @@ public class TMDay
         this.month = month;
         this.day = day;
     }
+    public TMDay(String timestamp)
+    {
+        //return getYear()+"-"+getMonth()+"-"+getDay();
+        String[] parts=timestamp.split("-");
+        if(parts.length>=1)
+        {
+            try
+            {
+                setYear(Integer.parseInt(parts[0]));
+            }
+            catch(Exception exception)
+            {
+
+            }
+        }
+        if(parts.length>=2)
+        {
+            setMonth(parts[1]);
+        }
+        if(parts.length>=3)
+        {
+            setDay(parts[2]);
+        }
+
+    }
 
     public TMDay(Context context) {
 
@@ -95,5 +120,8 @@ public class TMDay
         this.cmids.put(s,hj);
 
     }
+
+
+
 }
 

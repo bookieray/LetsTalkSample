@@ -228,12 +228,12 @@ public class MainActivity extends AppCompatActivity implements CommentListener {
 
                                     }
                                 }
-                                if(query_name.equals("set"))
+                                if(query_name.equals("nm"))
                                 {
-                                    boolean is_st=Boolean.parseBoolean(deepLink.getQueryParameter(query_name));
-                                    intent.putExtra(OrgFields.NO_MORE_PREV_COMMENTS,is_st);
+                                    boolean nm=Boolean.parseBoolean(deepLink.getQueryParameter(query_name));
+                                    intent.putExtra(OrgFields.NO_MORE_PREV_COMMENTS,nm);
                                 }
-                                if(query_name.equals("set"))
+                                if(query_name.equals("t"))
                                 {
                                     long t=Long.parseLong(deepLink.getQueryParameter(query_name));
                                     intent.putExtra(CurrentTopicForConvo.TSECONDS,t);
@@ -1165,6 +1165,11 @@ public class MainActivity extends AppCompatActivity implements CommentListener {
     @Override
     public void ScrollTo(int position) {
 
+    }
+
+    @Override
+    public void LeaveConvo() {
+        this.finish();
     }
 
     private void sendCommentQoutePrepare(Comment comment)

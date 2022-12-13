@@ -6,10 +6,8 @@
     android:layout_height="match_parent"
 
     android:background="@color/white"
-    android:layout_marginTop="10dp"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
-    android:visibility="gone"
     >
 
     <LinearLayout
@@ -48,7 +46,9 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:text="No comments yet"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"/>
 
             <!--The comment-->
             <com.ms.square.android.expandabletextview.ExpandableTextView
@@ -60,7 +60,8 @@
                 expandableTextView:maxCollapsedLines="2"
                 expandableTextView:animDuration="200"
                 android:layout_below="@id/no_data_area_label_sharedialog"
-                android:layout_alignStart="@id/no_data_area_label_sharedialog">
+                android:layout_centerHorizontal="true"
+                >
 
 
                 <hani.momanii.supernova_emoji_library.Helper.EmojiconTextView

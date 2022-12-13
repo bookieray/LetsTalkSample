@@ -213,6 +213,7 @@ public class Comment
             if(documentSnapshot.contains(OrgFields.MONTH))
             {
                 this.month=documentSnapshot.getLong(OrgFields.MONTH).intValue();
+                Log.i("pushjdla","month="+month);
             }
             else
             {
@@ -826,6 +827,12 @@ public class Comment
     }
 
     public int getDay() {
+        if(this.getCreatedDate()!=null&this.day<1
+                ||this.getCreatedDate()!=null&this.day>31)
+        {
+            LocalDateTime localDateTime=new LocalDateTime(this.getCreatedDate());
+            this.day=localDateTime.getDayOfMonth();
+        }
         return day;
     }
 
@@ -834,6 +841,14 @@ public class Comment
     }
 
     public int getMonth() {
+
+        if(this.getCreatedDate()!=null&this.month<1
+                ||this.getCreatedDate()!=null&this.month>12)
+        {
+            LocalDateTime localDateTime=new LocalDateTime(this.getCreatedDate());
+            this.month=localDateTime.getMonthOfYear();
+        }
+
         return month;
     }
 
@@ -1156,7 +1171,7 @@ public class Comment
 
     }
 
-    boolean isSent=false;
+    boolean isSent=true;
 
     public boolean isSent() {
         return isSent;
@@ -1176,6 +1191,16 @@ public class Comment
         this.numOFCommentsRead = numOFCommentsRead;
     }
 
+    public String getDateStr()
+    {
+
+        android.text.format.DateFormat df =
+                new android.text.format.DateFormat();
+        String outputx1=df.format("hh:mm:ss a",
+                        this.getCreatedDate())
+                .toString();
+        return outputx1;
+    }
 
 }
 

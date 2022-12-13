@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/close_button_media_dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            app:fabSize="mini"
+            app:srcCompat="@drawable/ic_baseline_keyboard_arrow_down_24" />
+
+        <TextView
+            android:id="@+id/convo_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textStyle="bold"
+            android:layout_below="@id/close_button_media_dialog"/>
+
+    </RelativeLayout>
+
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/media_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <ProgressBar
+        android:id="@+id/progress_bar_loading_head_comment"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="7dp"
+        android:progressTint="@color/purple_700"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/purple_700"
+
+        />
+
+
+</LinearLayout>

@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/purple_700"
 
-            android:text="view older comments"
+            android:text="View Older Comments"
 
             android:id="@+id/view_older_txt"
             android:textStyle="bold"

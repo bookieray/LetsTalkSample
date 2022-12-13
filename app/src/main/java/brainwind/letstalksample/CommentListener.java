@@ -23,5 +23,6 @@ public interface CommentListener
     void OnErrorLoading(String errorString,int selection);
     void OnLoadingFinished();
     void ScrollTo(int position);
+    void LeaveConvo();
 
 }
