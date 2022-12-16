@@ -118,6 +118,21 @@ public class TimestampCommentAdapter extends RecyclerView.Adapter<TimestampComme
             {
                 holder.comment_view.setVisibility(GONE);
             }
+            else
+            {
+
+                if(comment.isIs_timestamp()&comment.getComment().isEmpty()==false)
+                {
+                    holder.share_day_convo.setVisibility(View.VISIBLE);
+                    holder.share_day_convo
+                            .startAnimation(AnimationUtils
+                                    .loadAnimation(holder
+                                                    .share_day_convo
+                                                    .getContext()
+                                            , R.anim.pulse));
+                }
+
+            }
 
         }
 

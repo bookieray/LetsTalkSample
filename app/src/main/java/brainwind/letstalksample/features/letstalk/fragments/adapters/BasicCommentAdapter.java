@@ -2,6 +2,7 @@ package brainwind.letstalksample.features.letstalk.fragments.adapters;
 
 import android.graphics.Color;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -177,5 +178,52 @@ public class BasicCommentAdapter extends TimestampCommentAdapter
             return commentListUnderHeadComment.size();
         }
     }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull CommentHolder holder) {
+        super.onViewAttachedToWindow(holder);
+
+        if(holder.view_older!=null)
+        {
+            if(holder.view_older.getVisibility()==View.VISIBLE)
+            {
+                holder.view_older_txt
+                        .startAnimation(AnimationUtils
+                                .loadAnimation(holder
+                                                .view_older_txt
+                                                .getContext()
+                                        , R.anim.pulse));
+            }
+        }
+        if(holder.summary_area!=null)
+        {
+            if(holder.summary_area.getVisibility()==View.VISIBLE)
+            {
+                holder.summary_label
+                        .startAnimation(AnimationUtils
+                                .loadAnimation(holder
+                                                .summary_label
+                                                .getContext()
+                                        , R.anim.pulse));
+                int yh=holder.getBindingAdapterPosition();
+                if(yh<commentListUnderHeadComment.size())
+                {
+                    Comment comment=commentListUnderHeadComment.get(yh);
+                    if(comment.isIs_timestamp()&comment.getComment().isEmpty()==false)
+                    {
+                        holder.share_day_convo.setVisibility(View.VISIBLE);
+                        holder.share_day_convo
+                                .startAnimation(AnimationUtils
+                                        .loadAnimation(holder
+                                                        .share_day_convo
+                                                        .getContext()
+                                                , R.anim.pulse));
+                    }
+                }
+            }
+        }
+
+    }
+
 
 }

@@ -5,8 +5,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -181,68 +183,77 @@ public class CommentReader extends QueryWorker{
     }
     public void getCommentsForTimestampCommentTypeAfter(Comment headcomment,String timestamp,int comment_type,Comment afterdatecomment) throws Exception {
 
-        //using the conversation id, head comment comment id, year, month, day and comment type
-        TMDay tmDay=new TMDay(timestamp);
-        int month=-1;
-        int day=-1;
         try
         {
-            month=Integer.parseInt(tmDay.getMonth());
+
+            //using the conversation id, head comment comment id, year, month, day and comment type
+            TMDay tmDay=new TMDay(timestamp);
+            int month=-1;
+            int day=-1;
+            try
+            {
+                month=Integer.parseInt(tmDay.getMonth());
+            }
+            catch(Exception exception)
+            {
+
+            }
+            try
+            {
+                day=Integer.parseInt(tmDay.getDay());
+            }
+            catch(Exception exception)
+            {
+
+            }
+
+            if(month==-1||day==-1)
+            {
+                throw new Exception("Month or Day is invalid, "+timestamp+" CommentReader.getCommentsForTimestampCommentType(Comment headcomment,String timestamp,int comment_type)");
+            }
+
+            afterdatecomment=afterdatecomment;
+            setAfterComment(afterdatecomment);
+            setHead_comment(headcomment);
+            Comment timestamp_comment=new Comment();
+            timestamp_comment.setTimestamp(tmDay);
+
+            Query query=null;
+            /* from the spinner
+                <item>All</item>
+                <item>Agree</item>
+                <item>Disagree</item>
+                <item>Question</item>
+                <item>Answers</item>
+            */
+            if(comment_type==0)
+            {
+                query=getQueryForAllCommentTypeWithHeadComment(timestamp_comment);
+            }
+            if(comment_type==1)
+            {
+                query=getQueryForAgreeWithHeadComment(timestamp_comment);
+            }
+            if(comment_type==2)
+            {
+                query=getQueryForDisagreeWithHeadComment(timestamp_comment);
+            }
+            if(comment_type==3)
+            {
+                query=getQueryForQuestionWithHeadComment(timestamp_comment);
+            }
+            if(comment_type==4)
+            {
+                query=getQueryForQuestionWithHeadComment(timestamp_comment);
+            }
+
+            runQuery(query,timestamp);
+
         }
         catch(Exception exception)
         {
-
+            failedToGet(exception,timestamp,getWorkerID());
         }
-        try
-        {
-            day=Integer.parseInt(tmDay.getDay());
-        }
-        catch(Exception exception)
-        {
-
-        }
-
-        if(month==-1||day==-1)
-        {
-            throw new Exception("Month or Day is invalid, "+timestamp+" CommentReader.getCommentsForTimestampCommentType(Comment headcomment,String timestamp,int comment_type)");
-        }
-
-        afterdatecomment=afterdatecomment;
-        setAfterComment(afterdatecomment);
-        setHead_comment(headcomment);
-        Comment timestamp_comment=new Comment();
-        timestamp_comment.setTimestamp(tmDay);
-
-        Query query=null;
-        /* from the spinner
-            <item>All</item>
-            <item>Agree</item>
-            <item>Disagree</item>
-            <item>Question</item>
-            <item>Answers</item>
-         */
-        if(comment_type==0)
-        {
-            query=getQueryForAllCommentTypeWithHeadComment(timestamp_comment);
-        }
-        if(comment_type==1)
-        {
-            query=getQueryForAgreeWithHeadComment(timestamp_comment);
-        }
-        if(comment_type==2)
-        {
-            query=getQueryForDisagreeWithHeadComment(timestamp_comment);
-        }
-        if(comment_type==3)
-        {
-            query=getQueryForQuestionWithHeadComment(timestamp_comment);
-        }
-        if(comment_type==4)
-        {
-            query=getQueryForQuestionWithHeadComment(timestamp_comment);
-        }
-
-        runQuery(query,timestamp);
 
     }
 
@@ -264,13 +275,13 @@ public class CommentReader extends QueryWorker{
     public void runQuery(Query query,String timestamp)
     {
 
-        Log.i("onshjj","runQuery");
+        Log.i("onshjj","runQuery "+timestamp);
         query.limit(10).get()
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
 
-                        Log.i("onshjj","onFailure");
+                        Log.i("onshjj","onFailure "+timestamp);
                         failedToGet(e,timestamp,getWorkerID());
 
                     }
@@ -280,8 +291,24 @@ public class CommentReader extends QueryWorker{
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
                         finishedFirstRequest=true;
-                        Log.i("onshjj","onSuccess");
+                        Log.i("onshjj","onSuccess "+queryDocumentSnapshots.isEmpty()+" "+timestamp+" "+queryDocumentSnapshots.getMetadata().isFromCache());
                         successFullRead(queryDocumentSnapshots,timestamp,getWorkerID());
+
+                    }
+                })
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                        Log.i("onshjj","isSuccessful="+task.isSuccessful());
+                        if(task.isSuccessful())
+                        {
+
+                        }
+                        else
+                        {
+                            Log.i("onshjj","e="+task.getException().getMessage());
+                        }
 
                     }
                 });
@@ -294,13 +321,36 @@ public class CommentReader extends QueryWorker{
 
     public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID)
     {
-
+        if(getCommentWorkerFromFragment()!=null)
+        {
+            CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
+            if(commentCommunications!=null)
+            {
+                commentCommunications.onSuccessfulFetchTimestampComments(queryDocumentSnapshots,timestamp,workerID);
+            }
+        }
+        else
+        {
+            Log.i("onshjj","successFullRead getCommentWorkerFromFragment()==null");
+        }
     }
 
     public void failedToGet(Exception e,String timestamp, int workerID)
     {
 
-
+        Log.i("failedToGet","e="+e.getMessage());
+        if(getCommentWorkerFromFragment()!=null)
+        {
+            CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
+            if(commentCommunications!=null)
+            {
+                commentCommunications.onFailureToFetchTimestampComments(getHead_comment(),e.getMessage(),timestamp,workerID);
+            }
+        }
+        else
+        {
+            Log.i("failedToGet","failedToGet getCommentWorkerFromFragment()==null");
+        }
 
     }
 

@@ -105,6 +105,7 @@ import brainwind.letstalksample.features.letstalk.fragments.item.MediaItemWebSea
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
 import brainwind.letstalksample.features.letstalk.fragments.workers.AfterComments;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentCommunications;
+import brainwind.letstalksample.features.letstalk.fragments.workers.CommentReader;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentWorker;
 import brainwind.letstalksample.utils.AndroidUtils;
 import butterknife.BindView;
@@ -446,6 +447,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                     .getString(CONVO_ID);
             commentWorker=new CommentWorker(conversation_id,this);
         }
+        Log.i("dhuasgs",""+(commentWorker!=null)+" "+(commentWorker.getCommentAdapter()!=null));
         return commentWorker.getCommentAdapter();
     }
 
@@ -546,12 +548,21 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
         Log.i("GetCommentsUnderTimstmp","s1");
         if(comment!=null)
         {
-            Log.i("GetCommentsUnderTimstmp",comment.getDay()
-                    +" "+comment.getMonth()
-                    +" "+comment.getYear());
+            Log.i("GetCommentsUnderTimstmp",comment.getDateStr());
             //commentWorker.getCommentsUnderTimeStamp(comment,position);
+            int timestamp_pos=-1;
+            for(int i=0;i<commentWorker.getCommentAdapter().commentListUnderHeadComment.size();i++)
+            {
 
+                Comment comment1=commentWorker.getCommentAdapter().commentListUnderHeadComment.get(i);
+                if(comment1.getTimestamp().equals(comment.getTimestamp())&comment1.isIs_timestamp()&timestamp_pos==-1)
+                {
+                    timestamp_pos=i;
+                    break;
+                }
 
+            }
+            commentWorker.getCommentsAfterComment(comment,timestamp_pos);
 
         }
 

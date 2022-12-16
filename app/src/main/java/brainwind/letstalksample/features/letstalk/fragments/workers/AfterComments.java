@@ -23,11 +23,16 @@ public class AfterComments extends CommentReader
     @Override
     public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID) {
         super.successFullRead(queryDocumentSnapshots,timestamp, workerID);
+
+
     }
 
     @Override
     public void failedToGet(Exception e,String timestamp,  int workerID) {
         super.failedToGet(e,timestamp, workerID);
+
+
+
     }
 
 

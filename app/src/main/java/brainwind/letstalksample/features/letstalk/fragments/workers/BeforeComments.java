@@ -22,13 +22,7 @@ public class BeforeComments extends CommentReader
     public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp,  int workerID) {
         super.successFullRead(queryDocumentSnapshots,timestamp, workerID);
 
-        Log.i("BeforeComments","successFullRead workerID="+workerID+" queryDocumentSnapshots.isEmpty()="+queryDocumentSnapshots.isEmpty());
 
-        CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
-        if(commentCommunications!=null)
-        {
-            commentCommunications.onSuccessfulFetchTimestampComments(queryDocumentSnapshots,timestamp,workerID);
-        }
 
     }
 
@@ -36,7 +30,7 @@ public class BeforeComments extends CommentReader
     public void failedToGet(Exception e,String timestamp,  int workerID) {
         super.failedToGet(e,timestamp, workerID);
 
-        Log.i("BeforeComments","failedToGet workerID="+workerID+" e="+e.getMessage());
+
 
     }
 

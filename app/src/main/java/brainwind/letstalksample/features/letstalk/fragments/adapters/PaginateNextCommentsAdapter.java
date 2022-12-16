@@ -140,6 +140,7 @@ public class PaginateNextCommentsAdapter extends PaginatePreviousCommentsAdapter
     private void setUpOnNextClicked(CommentHolder holder, int position)
     {
 
+        Log.i("setUpOnNextClicked","position="+position);
         final Comment comment=commentListUnderHeadComment.get(position);
         holder.summary_label
                 .startAnimation(AnimationUtils

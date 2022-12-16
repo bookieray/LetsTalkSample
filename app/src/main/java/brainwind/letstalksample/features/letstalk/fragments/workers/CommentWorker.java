@@ -1,12 +1,16 @@
 package brainwind.letstalksample.features.letstalk.fragments.workers;
 
 import android.util.Log;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -112,7 +116,131 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
     public void onFailureToFetchTimestampComments(Comment headcomment,String errorMessage,String timestamp,int workerID)
     {
 
-        Log.i("onshjj","onFailureToFetchTimestampComments workerID="+workerID+" "+errorMessage);
+        Log.i("FalreTFthTmestmpCmmnts","onFailureToFetchTimestampComments workerID="+workerID+" "+errorMessage);
+        commentAdapter.no_more_comments_next.clear();
+        commentAdapter.no_more_comments_previous.clear();
+        if(comment_list.isComputingLayout()==false)
+        {
+            commentAdapter.notifyDataSetChanged();
+        }
+        else
+        {
+            comment_list.getViewTreeObserver()
+                    .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            commentAdapter.notifyDataSetChanged();
+                        }
+                    });
+        }
+        new MaterialDialog.Builder(getCurrentTopicFragment().getActivity())
+                .title("Oops")
+                .content("Could not get messages for "+headcomment.getDateStr()+" "+errorMessage)
+                .positiveText("Try again")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if(workerID==CommentReader.INITIAL)
+                        {
+                            try {
+                                initialComments.getCommentsForTimestampCommentType(headcomment,timestamp,comment_filter.getSelectedItemPosition());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if(workerID==CommentReader.PAGINATION_PREV)
+                        {
+                            try {
+                                int timestamp_pos=-1;
+                                for(int i=0;i<commentAdapter.commentListUnderHeadComment.size();i++)
+                                {
+
+                                    Comment comment1=commentAdapter.commentListUnderHeadComment.get(i);
+                                    if(comment1.getTimestamp().equals(timestamp)&comment1.isIs_timestamp()&timestamp_pos==-1)
+                                    {
+                                        timestamp_pos=i;
+                                        break;
+                                    }
+
+                                }
+                                getCommentsBeforeComment(headcomment,timestamp_pos);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if(workerID==CommentReader.PAGINATION_NEXT)
+                        {
+                            try {
+                                int timestamp_pos=-1;
+                                for(int i=0;i<commentAdapter.commentListUnderHeadComment.size();i++)
+                                {
+
+                                    Comment comment1=commentAdapter.commentListUnderHeadComment.get(i);
+                                    if(comment1.getTimestamp().equals(timestamp)&comment1.isIs_timestamp()&timestamp_pos==-1)
+                                    {
+                                        timestamp_pos=i;
+                                        break;
+                                    }
+
+                                }
+                                getCommentsAfterComment(getAfterComment(),timestamp_pos);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                })
+                .negativeText("Never mind")
+                .show();
+
+    }
+
+    AfterComments afterComments;
+    public void getCommentsAfterComment(Comment afterComment, int timestamp_pos)
+    {
+
+        boolean nsma=commentAdapter.timestamps_comments.containsKey(afterComment.getTimestamp());
+        Log.i("getCommentsAfterComment",afterComment.getDateTimeStr()+" nsma="+nsma);
+
+        if(commentAdapter.timestamps_comments.containsKey(afterComment.getTimestamp())==false)
+        {
+
+            if(initialComments==null)
+            {
+                initialComments=new InitialComments(conversation_id,currentTopicFragment);
+
+            }
+
+
+            try {
+                initialComments.setCurrentTopicForConvo(currentTopicForConvo);
+                initialComments.getCommentsForTimestampCommentType(getHead_comment(),afterComment.getTimestamp()
+                        ,comment_filter.getSelectedItemPosition());
+            } catch (Exception e) {
+                Log.i("getCommentsAfterComment",e.getMessage());
+                e.printStackTrace();
+            }
+
+        }
+        else
+        {
+            if(afterComments==null)
+            {
+                afterComments=new AfterComments(getConversation_id(),currentTopicForConvo);
+            }
+
+            afterComments.setCurrentTopicForConvo(currentTopicForConvo);
+            afterComments.setAfterComment(afterComment);
+            try {
+                afterComments.getCommentsForTimestampCommentTypeAfter(getHead_comment(),afterComment.getTimestamp(),comment_filter.getSelectedItemPosition(),afterComment);
+            } catch (Exception e) {
+                Log.i("getCommentsAfterComment","commmentAdapter="+(commentAdapter!=null));
+                Log.i("getCommentsAfterComment",e.getMessage());
+                e.printStackTrace();
+
+            }
+        }
 
     }
 
@@ -122,7 +250,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
 
 
         commentAdapter.is_loading=false;
-        Log.i("onshjj","onSuccessfulFetchTimestampComments workerID="+workerID+" "+queryDocumentSnapshots.isEmpty());
+        Log.i("ScsfulFtchTmestmpCments","onSuccessfulFetchTimestampComments workerID="+workerID+" "+queryDocumentSnapshots.isEmpty()+" "+timestampx);
         if(queryDocumentSnapshots.isEmpty()==false)
         {
 
@@ -143,7 +271,7 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
             DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(0);
             Comment comment=new Comment(documentSnapshot);
             final String timestamp=timestampx;
-            Log.i("onshjj",timestamp);
+            Log.i("ScsfulFtchTmestmpCments",timestamp);
 
             UserInfoDatabase.databaseWriteExecutor
                     .execute(new Runnable() {
@@ -357,22 +485,39 @@ public class CommentWorker extends CurrentCommentsView implements CommentCommuni
                         @Override
                         public void run() {
 
+                            if(marker_filter_area==null)
+                            {
+                                marker_filter_area=getRootView().findViewById(R.id.marker_filter_area);
+                            }
+                            marker_filter_area.setVisibility(View.VISIBLE);
                             commentAdapter.currentLoadingTimestampLabel="";
                             commentAdapter.notifyDataSetChanged();
                             if(comment_list==null)
                             {
                                 comment_list=getRootView().findViewById(R.id.comment_list);
                             }
-                            if(yj<commentAdapter.commentListUnderHeadComment.size())
+                            boolean ms=false;
+                            if(initialComments!=null)
+                            {
+                                if(initialComments.isScrolled()==false&workerID==CommentReader.INITIAL)
+                                {
+                                    ms=true;
+                                }
+                            }
+
+                            if(yj<commentAdapter.commentListUnderHeadComment.size()&ms)
                             {
                                 comment_list.scrollToPosition(yj);
                                 comment_list.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         comment_list.smoothScrollToPosition(yj);
+                                        initialComments.setScrolled(true);
                                     }
                                 },200);
+
                             }
+
 
                         }
                     });

@@ -29,7 +29,13 @@ public class ShareConvoTimestampAdapter extends BasicCommentAdapter
         if(getItemViewType(position)!=-1)
         {
             Comment comment=commentListUnderHeadComment.get(position);
-            setUpShareConvoDay(holder,comment);
+            if(holder.share_day_convo!=null)
+            {
+                if(holder.share_day_convo.getVisibility()==View.VISIBLE)
+                {
+                    setUpShareConvoDay(holder,comment);
+                }
+            }
         }
 
     }

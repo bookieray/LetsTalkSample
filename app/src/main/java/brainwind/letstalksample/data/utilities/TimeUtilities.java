@@ -101,6 +101,8 @@ public class TimeUtilities
             timeLabel=localDateTime.monthOfYear().getAsShortText()
                     +" "+localDateTime.getDayOfMonth()
                     +" "+localDateTime.getYear();
+            timeLabel=comment.getDateStr();
+
         }
 
         return timeLabel;

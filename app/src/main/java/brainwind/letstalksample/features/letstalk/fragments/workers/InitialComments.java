@@ -19,6 +19,7 @@ public class InitialComments extends CommentReader
 {
 
 
+    boolean scrolled=false;
     public InitialComments(String conversation_id, Fragment currentTopicFragment) {
         super(conversation_id, currentTopicFragment);
         setWorkerID(INITIAL);
@@ -29,18 +30,6 @@ public class InitialComments extends CommentReader
     public void failedToGet(Exception e,String timestamp,  int workerID) {
         super.failedToGet(e,timestamp, workerID);
 
-        if(getCommentWorkerFromFragment()!=null)
-        {
-            CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
-            if(commentCommunications!=null)
-            {
-                commentCommunications.onFailureToFetchTimestampComments(getHead_comment(),e.getMessage(),timestamp,workerID);
-            }
-        }
-        else
-        {
-            Log.i("onshjj","failedToGet getCommentWorkerFromFragment()==null");
-        }
 
     }
 
@@ -48,20 +37,15 @@ public class InitialComments extends CommentReader
     public void successFullRead(QuerySnapshot queryDocumentSnapshots,String timestamp, int workerID) {
         super.successFullRead(queryDocumentSnapshots,timestamp, workerID);
 
-        if(getCommentWorkerFromFragment()!=null)
-        {
-            CommentCommunications commentCommunications=(CommentCommunications) getCommentWorkerFromFragment();
-            if(commentCommunications!=null)
-            {
-                commentCommunications.onSuccessfulFetchTimestampComments(queryDocumentSnapshots,timestamp,workerID);
-            }
-        }
-        else
-        {
-            Log.i("onshjj","successFullRead getCommentWorkerFromFragment()==null");
-        }
 
     }
 
+    public boolean isScrolled() {
+        return scrolled;
+    }
+
+    public void setScrolled(boolean scrolled) {
+        this.scrolled = scrolled;
+    }
 
 }

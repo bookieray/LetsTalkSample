@@ -86,16 +86,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.SetOptions;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 import com.scwang.wave.MultiWaveHeader;
 
 import org.joda.time.LocalDateTime;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import brainwind.letstalksample.CaptureInfo1;
@@ -106,8 +102,6 @@ import brainwind.letstalksample.R;
 import brainwind.letstalksample.bookie_activity.BookieActivity;
 import brainwind.letstalksample.data.database.CloudWorker;
 import brainwind.letstalksample.data.database.OrgFields;
-import brainwind.letstalksample.data.database.user.user_info.UserInfo;
-import brainwind.letstalksample.data.database.user.user_info.UserInfoDao;
 import brainwind.letstalksample.data.database.user.user_info.UserInfoDatabase;
 import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.NetworkUtils;
@@ -211,6 +205,8 @@ public class LetsTalkManageEach extends AppCompatActivity
         }
         Log.i("and_life_cycle","onCreate estimatedServerTimeMs="
                 +estimatedServerTimeMs);
+
+
 
 
 
