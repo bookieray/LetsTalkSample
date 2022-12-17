@@ -196,7 +196,7 @@ public class LetsTalkManageEach extends AppCompatActivity
         setContentView(R.layout.activity_lets_talk_manage_each);
 
         //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-
+        ButterKnife.bind(this);
         Memory memory=new Memory(this);
         if(memory.getString(OrgFields.SERVER_TIME_OFFSET).isEmpty()==false
                 &memory.getString(OrgFields.SERVER_TIME_OFFSET)!="-1")
@@ -1214,39 +1214,66 @@ public class LetsTalkManageEach extends AppCompatActivity
     private void notifyOffline()
     {
 
-        if(emojicon_edit_text.isFocused())
-        {
-            tellUserMsg("You are currently offline");
-        }
-        else
-        {
-            Snackbar.make(rootview,
-                    "You are currently offline",
-                    Snackbar.LENGTH_SHORT).show();
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                disable_typing_area.setVisibility(View.VISIBLE);
+                if(emojicon_edit_text.isFocused())
+                {
+                    tellUserMsg("You are currently offline");
+
+                }
+                else
+                {
+                    Snackbar.make(rootview,
+                            "You are currently offline",
+                            Snackbar.LENGTH_SHORT).show();
+                }
+
+            }
+        });
 
     }
 
-    private void notifyBackOnline() {
-        if(num_attempts>1)
-        {
-            if(emojicon_edit_text.isFocused())
-            {
-                //tell the user using text to speech
-                tellUserMsg("You are back online");
-            }
-            else
-            {
-                Snackbar.make(rootview,
-                        "You are back online",
-                        Snackbar.LENGTH_SHORT).show();
-            }
+    @BindView(R.id.disable_typing_area)
+    FrameLayout disable_typing_area;
 
-        }
-        else
-        {
-            tellUserMsg("You are back online");
-        }
+    @OnClick({R.id.disable_typing_area,R.id.disable_typing_area_label})
+    void TellUserOffline()
+    {
+        notifyOffline();
+    }
+
+    private void notifyBackOnline() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                disable_typing_area.setVisibility(View.GONE);
+                if(num_attempts>1)
+                {
+                    if(emojicon_edit_text.isFocused())
+                    {
+                        //tell the user using text to speech
+                        tellUserMsg("You are back online");
+                    }
+                    else
+                    {
+                        Snackbar.make(rootview,
+                                "You are back online",
+                                Snackbar.LENGTH_SHORT).show();
+                    }
+
+                }
+                else
+                {
+                    tellUserMsg("You are back online");
+                }
+
+            }
+        });
     }
 
     TextToSpeech t1;
