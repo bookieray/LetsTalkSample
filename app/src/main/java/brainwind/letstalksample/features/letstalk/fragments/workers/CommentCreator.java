@@ -36,6 +36,8 @@ import brainwind.letstalksample.data.database.user.user_info.UserInfoDatabase;
 import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.NetworkUtils;
 import brainwind.letstalksample.features.letstalk.LetsTalkManageEach;
+import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo;
+import brainwind.letstalksample.features.letstalk.fragments.adapters.CommentAdapter;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 import brainwind.letstalksample.features.letstalk.fragments.item.Conversation;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
@@ -440,6 +442,17 @@ public class CommentCreator
     private void submitCommentToCloud(boolean under_head_comment,int comment_type)
     {
 
+        CurrentTopicForConvo currentTopicForConvo=(CurrentTopicForConvo)current_topic_frag;
+        if(currentTopicForConvo!=null)
+        {
+            CommentAdapter commentAdapter=currentTopicForConvo.getCommentAdapter();
+            commentAdapter.notifyDataSetChanged();
+            CommentListener commentListener=(CommentListener) currentTopicForConvo.getActivity();
+            if(commentListener!=null)
+            {
+                commentListener.messageUpdated();
+            }
+        }
         //after a successful submission of the comment
         //if it is reply comment operation set the replying_comment=null
         //If it is a reply comment

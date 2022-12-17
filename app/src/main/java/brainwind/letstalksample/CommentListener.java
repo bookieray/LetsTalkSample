@@ -1,5 +1,8 @@
 package brainwind.letstalksample;
 
+import androidx.fragment.app.Fragment;
+
+import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 import brainwind.letstalksample.features.letstalk.fragments.item.MediaItemWebSearch;
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
@@ -24,5 +27,9 @@ public interface CommentListener
     void OnLoadingFinished();
     void ScrollTo(int position);
     void LeaveConvo();
+
+    void messageUpdated();
+
+    void onFragmentCreated(Fragment currentTopicForConvo);
 
 }

@@ -71,7 +71,7 @@ public class PaginateNextCommentsAdapter extends PaginatePreviousCommentsAdapter
                     else
                     {
 
-                        if(timestamps_comments.containsKey(comment.getTimestamp())==false)
+                        if(timestamps_comments.containsKey(comment.getTimestamp())==false&comment.isIs_timestamp()&comment.getComment().isEmpty())
                         {
                             Log.i("txr"+comment.getTimestamp(),"s5");
                             holder.summary_label.setText("Tap for comments");
@@ -93,12 +93,15 @@ public class PaginateNextCommentsAdapter extends PaginatePreviousCommentsAdapter
 
                 }
 
+
+
             }
             else
             {
 
-                Log.i("txr"+comment.getTimestamp(),"s7");
+                Log.i("txr"+comment.getTimestamp(),"s7 "+comment.getTimestamp()+" "+holder.loading_prev_comments.getVisibility());
                 holder.summary_area.setVisibility(View.GONE);
+
 
 
             }

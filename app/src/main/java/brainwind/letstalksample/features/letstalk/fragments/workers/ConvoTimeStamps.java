@@ -159,11 +159,13 @@ public class ConvoTimeStamps extends CommentWorker
                 //comment_filter.setVisibility(View.VISIBLE);
                 //comment_filter.setEnabled(false);
                 Log.i("ksldass",(getCurrentTopicFragment()!=null)+" "+(currentTopicFragment!=null));
+                Log.i("getTmestmpsFrHeadCmment","qtxt="+qtxt);
                 mDatabase.child(qtxt)
                         .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<DataSnapshot> task) {
 
+                                Log.i("getTmestmpsFrHeadCmment","isSuccessful="+(task.isSuccessful())+" "+(task.getResult().getValue()!=null));
                                 if(!task.isSuccessful())
                                 {
 
@@ -173,6 +175,15 @@ public class ConvoTimeStamps extends CommentWorker
                                         commentCommunications.onFailureToFetchTimestamps(getHead_comment(),task.getException().getMessage());
                                     }
 
+                                }
+                                else if(task.getResult().getValue()==null)
+                                {
+                                    CommentCommunications commentCommunications=(CommentCommunications) commentWorker;
+                                    if(commentCommunications!=null)
+                                    {
+                                        ArrayList<Comment> timetsmaps=new ArrayList<Comment>();
+                                        commentCommunications.TimeStampsForHeadComment(getHead_comment(),timetsmaps);
+                                    }
                                 }
                                 else
                                 {
@@ -291,230 +302,243 @@ public class ConvoTimeStamps extends CommentWorker
         try
         {
 
-            jsonObject = new JSONObject(task.getResult().getValue().toString());
-            //Iterator<String> keys = jsonObject.keys();
-            JSONArray years_list=jsonObject.names();
-            Log.i("getCommentsFrHedComent","years_count="+years_list.length());
-
-            //loop through the years
-            for(int i=0;i<years_list.length();i++)
+            if(task.getResult().getValue()!=null)
             {
+                jsonObject = new JSONObject(task.getResult().getValue().toString());
+                //Iterator<String> keys = jsonObject.keys();
+                JSONArray years_list=jsonObject.names();
+                Log.i("getCommentsFrHedComent","years_count="+years_list.length());
 
-                //get each year
-                Integer year=Integer.parseInt(years_list.getString(i));
-                Log.i("getCommentsFrHedComent","year="+year);
-                years.add(year);
-
-                //find the months linked to each year
-                JSONObject jsonObject1=jsonObject.getJSONObject(years_list.getString(i));
-                Iterator<String> months_names = jsonObject1.keys();
-
-                //loop through the months
-                while(months_names.hasNext())
+                //loop through the years
+                for(int i=0;i<years_list.length();i++)
                 {
 
-                    //get each month
-                    String month_name = months_names.next();
-                    Integer month=Integer.parseInt(month_name);
-                    Log.i("getCommentsFrHedComent","month="+month_name);
-                    //get if already index a list linked to the year
-                    if(year_months.containsKey(year))
-                    {
-                        ArrayList<Integer> months=year_months.get(year);
-                        months.add(month);
-                        year_months.put(year,months);
-                    }
-                    else
-                    {
-                        //create a list linked to the year
-                        ArrayList<Integer> months=new ArrayList<>();
-                        months.add(month);
-                        year_months.put(year,months);
-                    }
+                    //get each year
+                    Integer year=Integer.parseInt(years_list.getString(i));
+                    Log.i("getCommentsFrHedComent","year="+year);
+                    years.add(year);
 
-                    //find the days linked to the month
-                    JSONObject jsonObject2=jsonObject1.getJSONObject(month_name);
-                    Iterator<String> days = jsonObject2.keys();
+                    //find the months linked to each year
+                    JSONObject jsonObject1=jsonObject.getJSONObject(years_list.getString(i));
+                    Iterator<String> months_names = jsonObject1.keys();
 
-                    while(days.hasNext())
+                    //loop through the months
+                    while(months_names.hasNext())
                     {
 
-                        String day_name = days.next();
-                        Integer day=Integer.parseInt(day_name);
-                        Log.i("getCommentsFrHedComent","month="+month_name+" day="+day);
-
-                        //find the days linked to the year and month
-                        if(year_month_days.containsKey(year+"-"+month))
+                        //get each month
+                        String month_name = months_names.next();
+                        Integer month=Integer.parseInt(month_name);
+                        Log.i("getCommentsFrHedComent","month="+month_name);
+                        //get if already index a list linked to the year
+                        if(year_months.containsKey(year))
                         {
-                            ArrayList<Integer> indexed_days=year_month_days.get(year+"-"+month);
-                            indexed_days.add(day);
-                            year_month_days.put(year+"-"+month,indexed_days);
+                            ArrayList<Integer> months=year_months.get(year);
+                            months.add(month);
+                            year_months.put(year,months);
                         }
                         else
                         {
-                            ArrayList<Integer> indexed_days=new ArrayList<Integer>();
-                            indexed_days.add(day);
-                            year_month_days.put(year+"-"+month,indexed_days);
-
+                            //create a list linked to the year
+                            ArrayList<Integer> months=new ArrayList<>();
+                            months.add(month);
+                            year_months.put(year,months);
                         }
 
-                        String value=jsonObject2.getString(day_name);
-                        year_month_day_last_comment_id.put(year+"-"+month+"-"+day,value);
+                        //find the days linked to the month
+                        JSONObject jsonObject2=jsonObject1.getJSONObject(month_name);
+                        Iterator<String> days = jsonObject2.keys();
 
-                    }
-
-
-
-                }
-
-            }
-
-            Log.i("getCommentsFrHedComent","starting to create tmDays "+years.size());
-            //reorder the lists
-            //sort out years
-            //descending order
-            Collections.sort(years);
-            Collections.reverse(years);
-            //reorder the months and days
-            for(Integer year:years)
-            {
-
-                //find the list of months that belong to this year
-                if(year_months.containsKey(year))
-                {
-                    //reorder the months that belong to the year
-                    ArrayList<Integer> months=year_months.get(year);
-                    Collections.sort(months);
-                    Collections.reverse(months);
-                    //reorder the days belong to each month in this year
-                    for(Integer month:months)
-                    {
-                        //find the days belong to each month in this year
-                        if(year_month_days.containsKey(year+"-"+month))
+                        while(days.hasNext())
                         {
 
-                            //sort out days in that month and year
-                            //descending order
-                            ArrayList<Integer> days=year_month_days.get(year+"-"+month);
-                            Collections.sort(days);
-                            Collections.reverse(days);
-                            //loop through the days and with month and year in previous
-                            HashMap<String,String> jkms=new HashMap<String,String>();
-                            for(Integer day:days)
+                            String day_name = days.next();
+                            Integer day=Integer.parseInt(day_name);
+                            Log.i("getCommentsFrHedComent","month="+month_name+" day="+day);
+
+                            //find the days linked to the year and month
+                            if(year_month_days.containsKey(year+"-"+month))
                             {
-
-                                TMDay tmDay=new TMDay(month+"","");
-                                tmDay.setYear(year);
-                                tmDay.setMonth(month+"");
-                                tmDay.setDay(day+"");
-                                tmDay.addDay(day+"");
-
-                                if(jkms
-                                        .containsKey(tmDay.getYear()
-                                                +"-"+tmDay.getMonth()
-                                                +"-"+tmDay.getDay())==false)
-                                {
-
-                                    String hj=jkms
-                                            .get(year+"-"+month+"-"+day);
-                                    if(year_month_day_last_comment_id.containsKey(hj))
-                                    {
-                                        String last_comment_id=year_month_day_last_comment_id.get(hj);
-                                        tmDay.setLast_comment_id(last_comment_id);
-                                    }
-                                    jkms.put(hj,tmDay.getLast_comment_id());
-                                    tmDays.add(tmDay);
-
-                                }
-
+                                ArrayList<Integer> indexed_days=year_month_days.get(year+"-"+month);
+                                indexed_days.add(day);
+                                year_month_days.put(year+"-"+month,indexed_days);
+                            }
+                            else
+                            {
+                                ArrayList<Integer> indexed_days=new ArrayList<Integer>();
+                                indexed_days.add(day);
+                                year_month_days.put(year+"-"+month,indexed_days);
 
                             }
 
+                            String value=jsonObject2.getString(day_name);
+                            year_month_day_last_comment_id.put(year+"-"+month+"-"+day,value);
+
                         }
+
+
+
                     }
 
                 }
 
-            }
-            //looping through the list of the objects
-            // that singularly contain day, month and year
-            int starting= tmDays.size()-1;
-            //if there are too many days of the conversation
-            //load only 100 days worth of timestamps
-            //and delete the older than 100 days and then from
-            if(starting>99)
-            {
-                starting=99;
-                deleteTooOldDaysOfConvoFromRegistry();
-            }
-            //looping through the list of the objects
-            // that singularly contain day, month and year
-            //looping from the most previuous first and added to the adapter list
-
-            Log.i("getCommentsFrHedComent","starting="+starting+" "+tmDays.size());
-            for(int i=starting;i>=0;i--)
-            {
-
-                TMDay tmDay2=tmDays.get(i);
-                String timestamp=tmDay2.getDay()+"-"+tmDay2.getMonth()
-                        +"-"+tmDay2.getYear();
-                String timestamp2=tmDay2.getYear()+"-"+tmDay2.getMonth()
-                        +"-"+tmDay2.getDay();
-                Log.i("timstar",timestamp2);
-
-                if(commentAdapter.started_loading_older_coments.containsKey(timestamp2))
-                {
-                    commentAdapter.started_loading_older_coments.remove(timestamp2);
-                }
-                //is it already added to the comment list adapter to prevent duplicates
-                if(timestamps_dates.containsKey(timestamp)==false)
+                Log.i("getCommentsFrHedComent","starting to create tmDays "+years.size());
+                //reorder the lists
+                //sort out years
+                //descending order
+                Collections.sort(years);
+                Collections.reverse(years);
+                //reorder the months and days
+                for(Integer year:years)
                 {
 
-                    Comment comment=new Comment();
-                    comment.setTimestamp(tmDay2);
+                    //find the list of months that belong to this year
+                    if(year_months.containsKey(year))
+                    {
+                        //reorder the months that belong to the year
+                        ArrayList<Integer> months=year_months.get(year);
+                        Collections.sort(months);
+                        Collections.reverse(months);
+                        //reorder the days belong to each month in this year
+                        for(Integer month:months)
+                        {
+                            //find the days belong to each month in this year
+                            if(year_month_days.containsKey(year+"-"+month))
+                            {
+
+                                //sort out days in that month and year
+                                //descending order
+                                ArrayList<Integer> days=year_month_days.get(year+"-"+month);
+                                Collections.sort(days);
+                                Collections.reverse(days);
+                                //loop through the days and with month and year in previous
+                                HashMap<String,String> jkms=new HashMap<String,String>();
+                                for(Integer day:days)
+                                {
+
+                                    TMDay tmDay=new TMDay(month+"","");
+                                    tmDay.setYear(year);
+                                    tmDay.setMonth(month+"");
+                                    tmDay.setDay(day+"");
+                                    tmDay.addDay(day+"");
+
+                                    if(jkms
+                                            .containsKey(tmDay.getYear()
+                                                    +"-"+tmDay.getMonth()
+                                                    +"-"+tmDay.getDay())==false)
+                                    {
+
+                                        String hj=jkms
+                                                .get(year+"-"+month+"-"+day);
+                                        if(year_month_day_last_comment_id.containsKey(hj))
+                                        {
+                                            String last_comment_id=year_month_day_last_comment_id.get(hj);
+                                            tmDay.setLast_comment_id(last_comment_id);
+                                        }
+                                        jkms.put(hj,tmDay.getLast_comment_id());
+                                        tmDays.add(tmDay);
+
+                                    }
 
 
-                    commentAdapter.commentListUnderHeadComment.add(comment);
-                    int pl=commentAdapter.commentListUnderHeadComment.size()-1;
-                    Log.i("adsxefs","adding "+comment.getTimestamp()+" "+pl);
-                    CommentDate commentDate=new CommentDate(comment);
-                    timestamps_dates.put(timestamp,commentDate);
+                                }
+
+                            }
+                        }
+
+                    }
+
                 }
+                //looping through the list of the objects
+                // that singularly contain day, month and year
+                int starting= tmDays.size()-1;
+                //if there are too many days of the conversation
+                //load only 100 days worth of timestamps
+                //and delete the older than 100 days and then from
+                if(starting>99)
+                {
+                    starting=99;
+                    deleteTooOldDaysOfConvoFromRegistry();
+                }
+                //looping through the list of the objects
+                // that singularly contain day, month and year
+                //looping from the most previuous first and added to the adapter list
 
-                if(i==0)
+                Log.i("getCommentsFrHedComent","starting="+starting+" "+tmDays.size());
+                for(int i=starting;i>=0;i--)
                 {
 
+                    TMDay tmDay2=tmDays.get(i);
+                    String timestamp=tmDay2.getDay()+"-"+tmDay2.getMonth()
+                            +"-"+tmDay2.getYear();
+                    String timestamp2=tmDay2.getYear()+"-"+tmDay2.getMonth()
+                            +"-"+tmDay2.getDay();
+                    Log.i("timstar",timestamp2);
+
+                    if(commentAdapter.started_loading_older_coments.containsKey(timestamp2))
+                    {
+                        commentAdapter.started_loading_older_coments.remove(timestamp2);
+                    }
+                    //is it already added to the comment list adapter to prevent duplicates
+                    if(timestamps_dates.containsKey(timestamp)==false)
+                    {
+
+                        Comment comment=new Comment();
+                        comment.setTimestamp(tmDay2);
+
+
+                        commentAdapter.commentListUnderHeadComment.add(comment);
+                        int pl=commentAdapter.commentListUnderHeadComment.size()-1;
+                        Log.i("adsxefs","adding "+comment.getTimestamp()+" "+pl);
+                        CommentDate commentDate=new CommentDate(comment);
+                        timestamps_dates.put(timestamp,commentDate);
+                    }
+
+                    if(i==0)
+                    {
+
+                    }
+
                 }
 
-            }
-
-            ArrayList<Comment> timetsmaps=new ArrayList<Comment>();
-            if(tmDays.size()>0)
-            {
-                for(int i=tmDays.size()-1;i>=0;i--)
+                ArrayList<Comment> timetsmaps=new ArrayList<Comment>();
+                if(tmDays.size()>0)
                 {
-                    TMDay tmDay=tmDays.get(i);
-                    Comment comment=new Comment();
-                    comment.setTimestamp(tmDay);
-                    timetsmaps.add(comment);
+                    for(int i=tmDays.size()-1;i>=0;i--)
+                    {
+                        TMDay tmDay=tmDays.get(i);
+                        Comment comment=new Comment();
+                        comment.setTimestamp(tmDay);
+                        timetsmaps.add(comment);
+
+                    }
+
+                    ident_list.put(qtxt,timetsmaps);
 
                 }
 
-                ident_list.put(qtxt,timetsmaps);
-
+                CommentCommunications commentCommunications=(CommentCommunications) commentWorker;
+                if(commentCommunications!=null)
+                {
+                    commentCommunications.TimeStampsForHeadComment(getHead_comment(),timetsmaps);
+                }
             }
-
-            CommentCommunications commentCommunications=(CommentCommunications) commentWorker;
-            if(commentCommunications!=null)
+            else
             {
-                commentCommunications.TimeStampsForHeadComment(getHead_comment(),timetsmaps);
+                CommentCommunications commentCommunications=(CommentCommunications) commentWorker;
+                if(commentCommunications!=null)
+                {
+                    ArrayList<Comment> timetsmaps=new ArrayList<Comment>();
+                    commentCommunications.TimeStampsForHeadComment(getHead_comment(),timetsmaps);
+                }
             }
 
 
         }
         catch (Exception exception)
         {
-
+            Log.i("getCommentsFrHedComent","e="+exception.getMessage());
+            exception.printStackTrace();
         }
 
 

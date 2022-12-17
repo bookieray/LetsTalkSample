@@ -130,6 +130,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
     public static final String IS_STANDALONE = "param3";
     public static final String TIMEOFFSET = "param4";
     public static final String STARTING_SIGNATURE = "param5";
+    public static final String HEAD_COMMENT_ID = "param6";
 
     //CommentWorker
     CommentWorker commentWorker;
@@ -436,6 +437,11 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
         super.onViewCreated(view, savedInstanceState);
 
         getHeadComment();
+        CommentListener commentListener=(CommentListener) getActivity();
+        if(commentListener!=null)
+        {
+            commentListener.onFragmentCreated(this);
+        }
     }
 
     public CommentAdapter getCommentAdapter()
@@ -469,18 +475,15 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             {
                 Log.i("ydughas","1 rootview is not empty");
 
-                commentWorker.getHeadComment();
-                new CountDownTimer(4000,1000) {
-                    @Override
-                    public void onTick(long l) {
-
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        //commentWorker.ShowHeadCommentError("No Internet",commentWorker);
-                    }
-                }.start();
+                if(getActivity().getIntent().hasExtra(HEAD_COMMENT_ID))
+                {
+                    String headcomment_id=getActivity().getIntent().getStringExtra(HEAD_COMMENT_ID);
+                    commentWorker.getHeadComment(headcomment_id);
+                }
+                else
+                {
+                    commentWorker.getHeadComment();
+                }
 
             }
             else
@@ -630,7 +633,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                 +"."+localDateTime.getHourOfDay()
                 +"."+localDateTime.getMinuteOfHour()
                 +"."+localDateTime.getSecondOfMinute();
-        Log.i("isFromStartingSign","signStart="+signStart+" "+start_comment.getCreatedDate().getTime()+" ");
+        Log.i("isFromStartingSign","signStart="+signStart+" "+start_comment.getCreatedDate().getTime()+" "+(commentWorker.getHead_comment()!=null));
         if(getArguments()!=null)
         {
 
@@ -651,12 +654,12 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
             }
 
             int recent_set_number=1;
-            /*if(commentWorker.timestamp_comments.containsKey(start_comment.getTimestamp()))
+            if(commentWorker.getCommentAdapter().timestamps_comments.containsKey(start_comment.getTimestamp()))
             {
-                recent_set_number=commentWorker.timestamp_comments.get(start_comment.getTimestamp()).size();
+                recent_set_number=commentWorker.getCommentAdapter().timestamps_comments.get(start_comment.getTimestamp()).size();
             }
             boolean more_previous=true;
-            if(commentWorker.commentAdapter.no_more_comments.containsKey(start_comment.getTimestamp()))
+            if(commentWorker.getCommentAdapter().no_more_comments_next.containsKey(start_comment.getTimestamp()))
             {
                 more_previous=false;
             }
@@ -679,6 +682,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                             +"&stc="+signStart
                             +"&set="+recent_set_number
                             +"&nm="+more_previous
+                            +"&ht="+commentWorker.getHead_comment().getComment_id()
                             +"&t="+start_comment.getCreatedDate().getTime()))
                     .setDomainUriPrefix("https://remould.page.link")
                     // Open links with this app on Android
@@ -736,7 +740,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
                     });
 
 
-             */
+
 
 
         }
@@ -790,6 +794,17 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
     }
 
     @Override
+    public void messageUpdated() {
+
+    }
+
+    @Override
+    public void onFragmentCreated(Fragment currentTopicForConvo) {
+
+    }
+
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -814,10 +829,21 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
     }
 
     public CommentWorker getCommentWorker() {
+        if(commentWorker==null)
+        {
+            String conversation_id = this.getArguments()
+                    .getString(CONVO_ID);
+            commentWorker=new CommentWorker(conversation_id,this);
+        }
         return commentWorker;
     }
 
     public void setCommentWorker(CommentWorker commentWorker) {
         this.commentWorker = commentWorker;
     }
+
+
+
+
+
 }

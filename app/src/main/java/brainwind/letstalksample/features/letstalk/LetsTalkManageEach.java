@@ -11,6 +11,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.work.Constraints;
@@ -22,6 +24,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -36,6 +39,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.animation.AnimationUtils;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -212,6 +216,11 @@ public class LetsTalkManageEach extends AppCompatActivity
 
     }
 
+    public Intent getIntentFromActivity()
+    {
+        return getIntent();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -241,6 +250,96 @@ public class LetsTalkManageEach extends AppCompatActivity
         getServerTimeOffset();
         L0();
 
+    }
+
+
+
+    boolean isKeyboardShowing=false;
+    int last_reading_pos=0;
+    RecyclerView comment_list;
+    private void checkCommentListKeyBoard(Fragment currentTopicForConvo)
+    {
+        try {
+
+            Log.i("chckCmmntLstKyBard",this.getPackageName()+" "+(currentTopicForConvo!=null));
+            if(currentTopicForConvo!=null)
+            {
+                CurrentTopicForConvo currentTopicForConvo1=(CurrentTopicForConvo)currentTopicForConvo;
+                RecyclerView comment_list=currentTopicForConvo1.getView().findViewById(R.id.comment_list);
+                this.comment_list=comment_list;
+                //RecyclerView comment_list=currentTopicForConvo1.getCommentWorker().getComment_list();
+                Log.i("chckCmmntLstKyBard","comment_list!=null "+(comment_list!=null));
+                if(comment_list!=null)
+                {
+                    comment_list.getViewTreeObserver()
+                            .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                @Override
+                                public void onGlobalLayout() {
+
+                                    Rect r = new Rect();
+                                    comment_list.getWindowVisibleDisplayFrame(r);
+                                    int screenHeight = comment_list.getRootView().getHeight();
+
+                                    // r.bottom is the position above soft keypad or device button.
+                                    // if keypad is shown, the r.bottom is smaller than that before.
+                                    int keypadHeight = screenHeight - r.bottom;
+
+                                    if (keypadHeight > screenHeight * 0.15) { // 0.15 ratio is perhaps enough to determine keypad height.
+                                        // keyboard is opened
+                                        if (!isKeyboardShowing) {
+                                            isKeyboardShowing = true;
+                                            LinearLayoutManager ln=(LinearLayoutManager)comment_list.getLayoutManager();
+
+
+                                        }
+                                    }
+                                    else {
+                                        // keyboard is closed
+                                        if (isKeyboardShowing) {
+                                            isKeyboardShowing = false;
+                                            currentTopicForConvo1.getCommentWorker().getCommentAdapter().notifyDataSetChanged();
+                                            if(last_reading_pos>0)
+                                            {
+
+                                                final int jk=last_reading_pos;
+                                                comment_list.scrollToPosition(jk);
+                                                comment_list.postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        comment_list.smoothScrollToPosition(jk);
+                                                        Log.i("keyposa","last_reading_pos="+jk);
+
+                                                    }
+                                                },1000);
+                                            }
+                                        }
+                                    }
+
+                                }
+                            });
+
+                    comment_list.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                        @Override
+                        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                            super.onScrollStateChanged(recyclerView, newState);
+
+                            if(newState==RecyclerView.SCROLL_STATE_IDLE)
+                            {
+                                LinearLayoutManager lm=(LinearLayoutManager)comment_list.getLayoutManager();
+                                last_reading_pos=lm.findLastVisibleItemPosition();
+                            }
+
+                        }
+                    });
+                }
+            }
+
+        }
+        catch(Exception exception)
+        {
+            Log.i("chckCmmntLstKyBard","e="+exception.getMessage());
+        }
     }
 
     //Start of Getting Conversation
@@ -1477,6 +1576,21 @@ public class LetsTalkManageEach extends AppCompatActivity
                     @Override
                     public void onTabSelected(TabLayout.Tab tab) {
                         content_pager.setCurrentItem(tab.getPosition());
+                        if(tab.getPosition()>0)
+                        {
+                            typing_area.setVisibility(View.GONE);
+                        }
+                        else
+                        {
+                            if(head_comment!=null)
+                            {
+                                typing_area.setVisibility(View.VISIBLE);
+                            }
+                            else
+                            {
+                                typing_area.setVisibility(View.GONE);
+                            }
+                        }
                     }
 
                     @Override
@@ -1490,7 +1604,30 @@ public class LetsTalkManageEach extends AppCompatActivity
                     }
                 });
 
+                content_pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        super.onPageSelected(position);
 
+                        tabs.selectTab(tabs.getTabAt(position));
+                        if(position>0)
+                        {
+                            typing_area.setVisibility(View.GONE);
+                        }
+                        else
+                        {
+                            if(head_comment!=null)
+                            {
+                                typing_area.setVisibility(View.VISIBLE);
+                            }
+                            else
+                            {
+                                typing_area.setVisibility(View.GONE);
+                            }
+                        }
+
+                    }
+                });
 
                 //testing warning dialog
                 //remove when tested or preparing for release
@@ -1516,6 +1653,7 @@ public class LetsTalkManageEach extends AppCompatActivity
                             .negativeText("Later")
                             .show();
                 }
+
 
 
             }
@@ -1648,6 +1786,7 @@ public class LetsTalkManageEach extends AppCompatActivity
 
         commentCreator=new CommentCreator(this,
                 current_Topic_for_convo,bookieActivity);
+        commentCreator.setHead_comment(head_comment);
         firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
         if(emojicon_edit_text.getText().toString().isEmpty()==false)
         {
@@ -1695,6 +1834,8 @@ public class LetsTalkManageEach extends AppCompatActivity
      */
     Comment head_comment;
     Comment replying_comment;
+    @BindView(R.id.typing_area)
+    LinearLayout typing_area;
     @Override
     public void foundHeadComment(Comment head_comment) {
 
@@ -1702,7 +1843,11 @@ public class LetsTalkManageEach extends AppCompatActivity
         if(this.head_comment!=null)
         {
             Log.i("foundHeadComment","from Activity "+head_comment.getComment_id());
-
+            typing_area.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            typing_area.setVisibility(View.GONE);
         }
 
     }
@@ -1993,6 +2138,26 @@ public class LetsTalkManageEach extends AppCompatActivity
         this.finish();
     }
 
+    @Override
+    public void messageUpdated() {
+        emojicon_edit_text.setText("");
+    }
+
+    @Override
+    public void onFragmentCreated(Fragment currentTopicForConvo) {
+
+        CurrentTopicForConvo currentTopicForConvo1=(CurrentTopicForConvo) currentTopicForConvo;
+        if(currentTopicForConvo1!=null)
+        {
+            checkCommentListKeyBoard(currentTopicForConvo);
+        }
+        else
+        {
+            Log.i("chckCmmntLstKyBard","currentTopicForConvo1==null");
+        }
+
+    }
+
 
     private void monitorConnect()
     {
@@ -2102,7 +2267,23 @@ public class LetsTalkManageEach extends AppCompatActivity
     protected void onPostResume() {
         super.onPostResume();
 
+        if(last_reading_pos>0&comment_list!=null)
+        {
 
+            final int jk=last_reading_pos;
+            Log.i("hdusaga","xlast_reading_pos="+jk);
+            comment_list.scrollToPosition(last_reading_pos);
+            comment_list.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    comment_list.smoothScrollToPosition(jk);
+                    Log.i("hdusaga","xlast_reading_pos="+jk);
+
+
+                }
+            },1000);
+        }
 
     }
 
@@ -2130,5 +2311,7 @@ public class LetsTalkManageEach extends AppCompatActivity
         }
 
     }
+
+
 
 }

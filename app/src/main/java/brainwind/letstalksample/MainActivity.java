@@ -238,6 +238,11 @@ public class MainActivity extends AppCompatActivity implements CommentListener {
                                     long t=Long.parseLong(deepLink.getQueryParameter(query_name));
                                     intent.putExtra(CurrentTopicForConvo.TSECONDS,t);
                                 }
+                                if(query_name.equals("ht"))
+                                {
+                                    String jk=deepLink.getQueryParameter(query_name);
+                                    intent.putExtra(CurrentTopicForConvo.HEAD_COMMENT_ID,jk);
+                                }
 
 
                             }
@@ -1171,6 +1176,17 @@ public class MainActivity extends AppCompatActivity implements CommentListener {
     public void LeaveConvo() {
         this.finish();
     }
+
+    @Override
+    public void messageUpdated() {
+
+    }
+
+    @Override
+    public void onFragmentCreated(Fragment currentTopicForConvo) {
+
+    }
+
 
     private void sendCommentQoutePrepare(Comment comment)
     {
