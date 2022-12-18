@@ -107,6 +107,7 @@ import brainwind.letstalksample.features.letstalk.fragments.workers.AfterComment
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentCommunications;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentReader;
 import brainwind.letstalksample.features.letstalk.fragments.workers.CommentWorker;
+import brainwind.letstalksample.fragments.letstalk.current_topic.CurrentTopic;
 import brainwind.letstalksample.utils.AndroidUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -135,6 +136,7 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
     //CommentWorker
     CommentWorker commentWorker;
     public Comment reply_comment;
+
 
     public CurrentTopicForConvo() {
         // Required empty public constructor
@@ -382,7 +384,10 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
         //attachReplySwitch();
         //checkCommentListKeyBoard();
         //setUpFilter();
-
+        if(comment_list!=null)
+        {
+            setUpCommentList();
+        }
         return view;
     }
 
@@ -795,7 +800,11 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
 
     @Override
     public void messageUpdated() {
-
+        CommentListener commentListener=(CommentListener) getActivity();
+        if(commentListener!=null)
+        {
+            commentListener.OnCancelReply();
+        }
     }
 
     @Override
@@ -842,8 +851,332 @@ public class CurrentTopicForConvo extends Fragment implements CommentListener {
         this.commentWorker = commentWorker;
     }
 
+    class MessageSwipeController extends ItemTouchHelper.Callback {
+
+        private Drawable imageDrawable;
+        private Drawable shareRound;
+        private RecyclerView.ViewHolder currentItemViewHolder=null;
+        private View mView;
+        private float dX=0f;
+        private float replyButtonProgress=0;
+        private long lastReplyButtonAnimationTime=0;
+        private boolean swipeBack=false;
+        private boolean isVibrate=false;
+        private boolean startTracking=false;
+        private SwipeControllerActions swipeControllerActions;
+        private Context context;
+
+        MessageSwipeController(Context context, SwipeControllerActions swipeControllerActions)
+        {
+            this.context=context;
+            this.swipeControllerActions=swipeControllerActions;
+        }
+
+        @Override
+        public int getMovementFlags(@NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder) {
+            //mView = viewHolder.itemView
+            mView=viewHolder.itemView;
+            imageDrawable=getContext().getDrawable(R.drawable.ic_reply_black_24dp);
+            imageDrawable.setBounds(0, 0, 100, 100);
+            shareRound=getContext().getDrawable(R.drawable.ic_round_shape);
 
 
+
+            return ItemTouchHelper.Callback.makeMovementFlags(ACTION_STATE_IDLE, RIGHT);
+        }
+
+        /*
+         override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+         */
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        //override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+        }
+
+        /*
+            override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
+                if (swipeBack) {
+                    swipeBack = false
+                    return 0
+                }
+                return super.convertToAbsoluteDirection(flags, layoutDirection)
+            }
+         */
+        @Override
+        public int convertToAbsoluteDirection(int flags, int layoutDirection) {
+            if (swipeBack)
+            {
+                swipeBack = false;
+                return 0;
+            }
+            return super.convertToAbsoluteDirection(flags, layoutDirection);
+
+        }
+
+        /*
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+
+                if (actionState == ACTION_STATE_SWIPE) {
+                    setTouchListener(recyclerView, viewHolder)
+                }
+
+                if (mView.translationX < convertTodp(130) || dX < this.dX) {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    this.dX = dX
+                    startTracking = true
+                }
+                currentItemViewHolder = viewHolder
+                drawReplyButton(c)
+            }
+         */
+
+        @Override
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                @NonNull RecyclerView.ViewHolder viewHolder,
+                                float dX, float dY, int actionState, boolean isCurrentlyActive) {
+
+            if (actionState == ACTION_STATE_SWIPE)
+            {
+                setTouchListener(recyclerView, viewHolder);
+            }
+            if (mView.getTranslationX() < convertTodp(130) || dX < this.dX)
+            {
+                super.onChildDraw(c, recyclerView, viewHolder,
+                        dX, dY, actionState, isCurrentlyActive);
+                this.dX = dX;
+                startTracking = true;
+            }
+            currentItemViewHolder = viewHolder;
+            drawReplyButton(c);
+
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        private void setTouchListener(RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder)
+        {
+
+            recyclerView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    swipeBack = motionEvent.getAction() == MotionEvent.ACTION_CANCEL
+                            || motionEvent.getAction() == MotionEvent.ACTION_UP;
+                    if (swipeBack)
+                    {
+                        if (Math.abs(mView.getTranslationX()) >= convertTodp(100))
+                        {
+                            swipeControllerActions.showReplyUI(viewHolder.getBindingAdapterPosition());
+                        }
+                    }
+                    return false;
+                }
+            });
+
+        }
+
+        private void drawReplyButton(Canvas canvas)
+        {
+
+            if (currentItemViewHolder == null) {
+                return;
+            }
+
+            //val translationX = mView.translationX
+            float translationX=mView.getTranslationX();
+            //val newTime = System.currentTimeMillis()
+            long newTime = System.currentTimeMillis();
+            //val dt = Math.min(17, newTime - lastReplyButtonAnimationTime)
+            long dt=Math.min(17,newTime-lastReplyButtonAnimationTime);
+            //lastReplyButtonAnimationTime = newTime
+            lastReplyButtonAnimationTime = newTime;
+            //val showing = translationX >= convertTodp(30)
+            boolean showing = translationX >= convertTodp(30);
+            if (showing)
+            {
+                if (replyButtonProgress < 1.0f)
+                {
+                    replyButtonProgress += dt / 180.0f;
+                    if (replyButtonProgress > 1.0f)
+                    {
+                        replyButtonProgress = 1.0f;
+                    }
+                    else
+                    {
+                        mView.invalidate();
+                    }
+                }
+            }
+            else if (translationX <= 0.0f)
+            {
+
+                replyButtonProgress = 0f;
+                startTracking = false;
+                isVibrate = false;
+
+            }
+            else
+            {
+
+                if (replyButtonProgress > 0.0f)
+                {
+                    replyButtonProgress -= dt / 180.0f;
+                    if (replyButtonProgress < 0.1f)
+                    {
+                        replyButtonProgress = 0f;
+
+                    }
+                    else
+                    {
+                        mView.invalidate();
+                    }
+                }
+
+            }
+
+            //val alpha: Int
+            int alpha;
+            //val scale: Float
+            float scale;
+            if (showing)
+            {
+                if (replyButtonProgress <= 0.8f)
+                {
+                    scale=1.2f * (replyButtonProgress / 0.8f);
+                }
+                else
+                {
+                    scale=1.2f - 0.2f * ((replyButtonProgress - 0.8f) / 0.2f);
+                }
+                alpha = (int)Math.min(255f, 255 * (replyButtonProgress / 0.8f));
+
+            }
+            else
+            {
+                scale = replyButtonProgress;
+                alpha = (int)Math.min(255f, 255 * replyButtonProgress);
+            }
+
+            shareRound.setAlpha(alpha);
+            imageDrawable.setAlpha(alpha);
+            if (startTracking)
+            {
+                if (!isVibrate && mView.getTranslationX() >= convertTodp(100))
+                {
+                    mView.performHapticFeedback(
+                            HapticFeedbackConstants.KEYBOARD_TAP,
+                            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                    isVibrate = true;
+                }
+            }
+
+            /*
+            val x: Int = if (mView.translationX > convertTodp(130)) {
+                convertTodp(130) / 2
+            } else {
+                (mView.translationX / 2).toInt()
+            }
+             */
+            int x;
+            if (mView.getTranslationX() > convertTodp(130))
+            {
+                x=convertTodp(130) / 2;
+            }
+            else
+            {
+                x=(int)(mView.getTranslationX() / 2);
+            }
+            //val y = (mView.top + mView.measuredHeight / 2).toFloat()
+            float y=Float.valueOf(mView.getTop() + mView.getMeasuredHeight() / 2);
+            //shareRound.colorFilter =
+            //            PorterDuffColorFilter(ContextCompat.getColor(context,
+            //            R.color.colorE),
+            //            PorterDuff.Mode.MULTIPLY)
+            shareRound.setColorFilter(new PorterDuffColorFilter(getActivity().getResources().getColor(R.color.colorE)
+                    , PorterDuff.Mode.MULTIPLY));
+            shareRound.setBounds(
+                    (int)(x - convertTodp(18) * scale),
+                    (int)(y - convertTodp(18) * scale),
+                    (int)(x + convertTodp(50) * scale),
+                    (int)(y + convertTodp(50) * scale)
+            );
+            shareRound.draw(canvas);
+            imageDrawable.setBounds(
+                    (int)(x - convertTodp(12) * scale),
+                    (int)(y - convertTodp(11) * scale),
+                    (int)(x + convertTodp(40) * scale),
+                    (int)(y + convertTodp(38) * scale)
+            );
+            imageDrawable.draw(canvas);
+            shareRound.setAlpha(255);
+            imageDrawable.setAlpha(255);
+
+        }
+        /*
+            private fun convertTodp(pixel: Int): Int {
+                return AndroidUtils.dp(pixel.toFloat(), context)
+            }
+         */
+        private int convertTodp(int pixel)
+        {
+            return AndroidUtils.dp(Float.valueOf(pixel), context);
+        }
+
+
+    }
+
+
+    private int quotedMessagePos;
+    MessageSwipeController messageSwipeController=new MessageSwipeController(getActivity(),
+            new SwipeControllerActions() {
+                @Override
+                public void showReplyUI(int position) {
+                    quotedMessagePos = position;
+                    Comment comment=commentWorker.getCommentAdapter().commentListUnderHeadComment.get(position);
+                    showQuotedMessage(comment);
+                }
+            });
+
+    private void showQuotedMessage(Comment comment)
+    {
+
+        CommentListener commentListener=(CommentListener) getActivity();
+        if(commentListener!=null)
+        {
+            commentListener.onReply(comment);
+        }
+
+    }
+
+    @BindView(R.id.comment_list)
+    RecyclerView comment_list;
+    private ItemTouchHelper itemTouchHelper;
+    private void setUpCommentList()
+    {
+
+        itemTouchHelper=new ItemTouchHelper(messageSwipeController);
+        itemTouchHelper.attachToRecyclerView(comment_list);
+
+    }
 
 
 }
