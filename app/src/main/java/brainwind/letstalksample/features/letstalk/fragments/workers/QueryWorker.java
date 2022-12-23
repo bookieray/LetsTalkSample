@@ -925,5 +925,550 @@ public class QueryWorker
         return query;
     }
 
+    public Query getQueryForAllCommentTypeForNewHeadComment(Comment timestamp_comment)
+    {
+
+        if(commentAdapter==null)
+        {
+            this.commentAdapter=((CurrentTopicForConvo)currentTopicForConvo).getCommentAdapter();
+        }
+        Query query= CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+
+        Log.i("beforeCommentx","b="+(beforeComment !=null));
+        if(afterComment!=null)
+        {
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", afterComment.getCreatedDate())
+                    .toString();
+            Log.i("afterComment",afterComment.getDateStr()+" "+afterComment.getComment()+" "
+                    +afterComment.getCreatedDate().getTime()+" "+head_comment.getComment_id());
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereGreaterThan("sjkkdhja",afterComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+        }
+        else if(beforeComment !=null)
+        {
+
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", beforeComment.getCreatedDate())
+                    .toString();
+            Log.i("beforeCommentx",output);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereLessThan(OrgFields.USER_CREATED_DATE, beforeComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(timestamp_comment.isFromStartingSign())
+        {
+
+            commentAdapter.starting_timestamp=timestamp_comment.getTimestamp();
+
+
+            if(currentTopicForConvo.getArguments()!=null)
+            {
+
+                if(currentTopicForConvo.getArguments()
+                        .containsKey(CurrentTopicForConvo.SET))
+                {
+                    int set=currentTopicForConvo.getArguments()
+                            .getInt(CurrentTopicForConvo.SET);
+
+                    commentAdapter.starting_set_number=set;
+                    if(currentTopicForConvo.getArguments().containsKey(OrgFields.NO_MORE_PREV_COMMENTS))
+                    {
+                        boolean s=currentTopicForConvo.getArguments().getBoolean(OrgFields.NO_MORE_PREV_COMMENTS);
+                        Log.i("getCommentsUnderTmeStmp","s="+s+" "+set
+                                +" "+commentAdapter.no_more_comments_next.containsKey(timestamp_comment.getTimestamp()));
+                        if(s)
+                        {
+                            commentAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            Date lm=new LocalDateTime()
+                    .withYear(timestamp_comment.getYear())
+                    .withMonthOfYear(timestamp_comment.getMonth())
+                    .withDayOfMonth(timestamp_comment.getDay())
+                    .withHourOfDay(timestamp_comment.getHour())
+                    .withMinuteOfHour(timestamp_comment.getMin())
+                    .withSecondOfMinute(timestamp_comment.getSec()).toDate();
+
+            if(currentTopicForConvo.getArguments().containsKey(CurrentTopicForConvo.TSECONDS))
+            {
+                long ts=currentTopicForConvo.getArguments().getLong(CurrentTopicForConvo.TSECONDS);
+                android.text.format.DateFormat df =
+                        new android.text.format.DateFormat();
+                String output=df.format("yyyy-MM-dd hh:mm:ss a",
+                                lm)
+                        .toString();
+                Log.i("isFromStartingSign",output+" lm="+lm.getTime()+" ts="+ts+" "+timestamp_comment.getComment());
+
+                Log.i("getCommentsUnderTmeStmp",output
+                        +" conversation_id="+conversation_id
+                        +" h="+head_comment.getComment_id()+" "+lm.getTime());
+
+                query= CloudWorker.getLetsTalkComments()
+                        .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                        .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                        .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                        .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                        .whereGreaterThanOrEqualTo(OrgFields.USER_CREATED_DATE,new Date(ts))
+                        .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+            }
+
+
+
+        }
+        else
+        {
+            Log.i("nsodha",head_comment.getComment_id());
+        }
+
+        return query;
+
+    }
+    public Query getQueryForAgreeForNewHeadComment(Comment timestamp_comment)
+    {
+
+        if(commentAdapter==null)
+        {
+            this.commentAdapter=((CurrentTopicForConvo)currentTopicForConvo).getCommentAdapter();
+        }
+        Query query=CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        if(afterComment!=null)
+        {
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", afterComment.getCreatedDate())
+                    .toString();
+            Log.i("afterComment",output);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                    .whereGreaterThan(OrgFields.USER_CREATED_DATE, afterComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(beforeComment !=null)
+        {
+            query=CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                    .whereLessThan(OrgFields.USER_CREATED_DATE, beforeComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(timestamp_comment.isFromStartingSign())
+        {
+
+            commentAdapter.starting_timestamp=timestamp_comment.getTimestamp();
+
+            if(currentTopicForConvo.getArguments()!=null)
+            {
+
+                if(currentTopicForConvo.getArguments()
+                        .containsKey(CurrentTopicForConvo.SET))
+                {
+                    int set=currentTopicForConvo.getArguments()
+                            .getInt(CurrentTopicForConvo.SET);
+                    commentAdapter.starting_set_number=set;
+                    if(currentTopicForConvo.getArguments().containsKey(OrgFields.NO_MORE_PREV_COMMENTS))
+                    {
+                        boolean s=currentTopicForConvo.getArguments().getBoolean(OrgFields.NO_MORE_PREV_COMMENTS);
+                        if(s==false)
+                        {
+                            commentAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            Date lm=new LocalDateTime()
+                    .withYear(timestamp_comment.getYear())
+                    .withMonthOfYear(timestamp_comment.getMonth())
+                    .withDayOfMonth(timestamp_comment.getDay())
+                    .withHourOfDay(timestamp_comment.getHour())
+                    .withMinuteOfHour(timestamp_comment.getMin())
+                    .withSecondOfMinute(timestamp_comment.getSec()).toDate();
+
+            if(currentTopicForConvo.getArguments().containsKey(CurrentTopicForConvo.TSECONDS))
+            {
+                long ts=currentTopicForConvo.getArguments().getLong(CurrentTopicForConvo.TSECONDS);
+                android.text.format.DateFormat df =
+                        new android.text.format.DateFormat();
+                String output=df.format("yyyy-MM-dd hh:mm:ss a",
+                                lm)
+                        .toString();
+                Log.i("shareDayConvo","sd1 output="+output+" "+lm.getTime());
+
+                Log.i("getCommentsUnderTmeStmp",output
+                        +" conversation_id="+conversation_id
+                        +" h="+head_comment.getComment_id()+" "+lm.getTime());
+
+                query= CloudWorker.getLetsTalkComments()
+                        .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                        .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                        .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                        .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                        .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                        .whereGreaterThanOrEqualTo(OrgFields.USER_CREATED_DATE,new Date(ts))
+                        .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+            }
+
+
+
+        }
+
+        return query;
+
+    }
+    public Query getQueryForDisagreeForNewHeadComment(Comment timestamp_comment)
+    {
+
+        if(commentAdapter==null)
+        {
+            this.commentAdapter=((CurrentTopicForConvo)currentTopicForConvo).getCommentAdapter();
+        }
+        Query query=CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        if(afterComment!=null)
+        {
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", afterComment.getCreatedDate())
+                    .toString();
+            Log.i("afterComment",output);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
+                    .whereGreaterThan(OrgFields.USER_CREATED_DATE, afterComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(beforeComment !=null)
+        {
+            query=CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
+                    .whereLessThan(OrgFields.USER_CREATED_DATE, beforeComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(timestamp_comment.isFromStartingSign())
+        {
+
+            commentAdapter.starting_timestamp=timestamp_comment.getTimestamp();
+
+            if(currentTopicForConvo.getArguments()!=null)
+            {
+
+                if(currentTopicForConvo.getArguments()
+                        .containsKey(CurrentTopicForConvo.SET))
+                {
+                    int set=currentTopicForConvo.getArguments()
+                            .getInt(CurrentTopicForConvo.SET);
+                    commentAdapter.starting_set_number=set;
+                    if(currentTopicForConvo.getArguments().containsKey(OrgFields.NO_MORE_PREV_COMMENTS))
+                    {
+                        boolean s=currentTopicForConvo.getArguments().getBoolean(OrgFields.NO_MORE_PREV_COMMENTS);
+                        if(s==false)
+                        {
+                            commentAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            Date lm=new LocalDateTime()
+                    .withYear(timestamp_comment.getYear())
+                    .withMonthOfYear(timestamp_comment.getMonth())
+                    .withDayOfMonth(timestamp_comment.getDay())
+                    .withHourOfDay(timestamp_comment.getHour())
+                    .withMinuteOfHour(timestamp_comment.getMin())
+                    .withSecondOfMinute(timestamp_comment.getSec()).toDate();
+
+            if(currentTopicForConvo.getArguments().containsKey(CurrentTopicForConvo.TSECONDS))
+            {
+                long ts=currentTopicForConvo.getArguments().getLong(CurrentTopicForConvo.TSECONDS);
+                android.text.format.DateFormat df =
+                        new android.text.format.DateFormat();
+                String output=df.format("yyyy-MM-dd hh:mm:ss a",
+                                lm)
+                        .toString();
+                Log.i("shareDayConvo","sd1 output="+output+" "+lm.getTime());
+
+                Log.i("getCommentsUnderTmeStmp",output
+                        +" conversation_id="+conversation_id
+                        +" h="+head_comment.getComment_id()+" "+lm.getTime());
+
+                query= CloudWorker.getLetsTalkComments()
+                        .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                        .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                        .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                        .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                        .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
+                        .whereGreaterThanOrEqualTo(OrgFields.USER_CREATED_DATE,new Date(ts))
+                        .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+            }
+
+
+
+        }
+
+        return query;
+
+    }
+    public Query getQueryForQuestionForNewHeadComment(Comment timestamp_comment)
+    {
+
+        if(commentAdapter==null)
+        {
+            this.commentAdapter=((CurrentTopicForConvo)currentTopicForConvo).getCommentAdapter();
+        }
+        Query query=CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        if(afterComment!=null)
+        {
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", afterComment.getCreatedDate())
+                    .toString();
+            Log.i("afterComment",output);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
+                    .whereGreaterThan(OrgFields.USER_CREATED_DATE, afterComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(beforeComment !=null)
+        {
+            query=CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
+                    .whereLessThan(OrgFields.USER_CREATED_DATE, beforeComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(timestamp_comment.isFromStartingSign())
+        {
+
+            commentAdapter.starting_timestamp=timestamp_comment.getTimestamp();
+
+            if(currentTopicForConvo.getArguments()!=null)
+            {
+
+                if(currentTopicForConvo.getArguments()
+                        .containsKey(CurrentTopicForConvo.SET))
+                {
+                    int set=currentTopicForConvo.getArguments()
+                            .getInt(CurrentTopicForConvo.SET);
+                    commentAdapter.starting_set_number=set;
+                    if(currentTopicForConvo.getArguments().containsKey(OrgFields.NO_MORE_PREV_COMMENTS))
+                    {
+                        boolean s=currentTopicForConvo.getArguments().getBoolean(OrgFields.NO_MORE_PREV_COMMENTS);
+                        if(s==false)
+                        {
+                            commentAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            Date lm=new LocalDateTime()
+                    .withYear(timestamp_comment.getYear())
+                    .withMonthOfYear(timestamp_comment.getMonth())
+                    .withDayOfMonth(timestamp_comment.getDay())
+                    .withHourOfDay(timestamp_comment.getHour())
+                    .withMinuteOfHour(timestamp_comment.getMin())
+                    .withSecondOfMinute(timestamp_comment.getSec()).toDate();
+
+            if(currentTopicForConvo.getArguments().containsKey(CurrentTopicForConvo.TSECONDS))
+            {
+                long ts=currentTopicForConvo.getArguments().getLong(CurrentTopicForConvo.TSECONDS);
+                android.text.format.DateFormat df =
+                        new android.text.format.DateFormat();
+                String output=df.format("yyyy-MM-dd hh:mm:ss a",
+                                lm)
+                        .toString();
+                Log.i("shareDayConvo","sd1 output="+output+" "+lm.getTime());
+
+                Log.i("getCommentsUnderTmeStmp",output
+                        +" conversation_id="+conversation_id
+                        +" h="+head_comment.getComment_id()+" "+lm.getTime());
+
+                query= CloudWorker.getLetsTalkComments()
+                        .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                        .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                        .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                        .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                        .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
+                        .whereGreaterThanOrEqualTo(OrgFields.USER_CREATED_DATE,new Date(ts))
+                        .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+            }
+
+
+
+        }
+        return query;
+    }
+    public Query getQueryForAnswerForNewHeadComment(Comment timestamp_comment)
+    {
+
+        if(commentAdapter==null)
+        {
+            this.commentAdapter=((CurrentTopicForConvo)currentTopicForConvo).getCommentAdapter();
+        }
+        Query query=CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.ANSWER)
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        if(afterComment!=null)
+        {
+            android.text.format.DateFormat df = new android.text.format.DateFormat();
+            String output=df.format("yyyy-MM-dd hh:mm:ss a", afterComment.getCreatedDate())
+                    .toString();
+            Log.i("afterComment",output);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.ANSWER)
+                    .whereGreaterThan(OrgFields.USER_CREATED_DATE, afterComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(beforeComment !=null)
+        {
+            query=CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.ANSWER)
+                    .whereLessThan(OrgFields.USER_CREATED_DATE, beforeComment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
+        else if(timestamp_comment.isFromStartingSign())
+        {
+
+            commentAdapter.starting_timestamp=timestamp_comment.getTimestamp();
+
+            if(currentTopicForConvo.getArguments()!=null)
+            {
+
+                if(currentTopicForConvo.getArguments()
+                        .containsKey(CurrentTopicForConvo.SET))
+                {
+                    int set=currentTopicForConvo.getArguments()
+                            .getInt(CurrentTopicForConvo.SET);
+                    commentAdapter.starting_set_number=set;
+                    if(currentTopicForConvo.getArguments().containsKey(OrgFields.NO_MORE_PREV_COMMENTS))
+                    {
+                        boolean s=currentTopicForConvo.getArguments().getBoolean(OrgFields.NO_MORE_PREV_COMMENTS);
+                        if(s==false)
+                        {
+                            commentAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            Date lm=new LocalDateTime()
+                    .withYear(timestamp_comment.getYear())
+                    .withMonthOfYear(timestamp_comment.getMonth())
+                    .withDayOfMonth(timestamp_comment.getDay())
+                    .withHourOfDay(timestamp_comment.getHour())
+                    .withMinuteOfHour(timestamp_comment.getMin())
+                    .withSecondOfMinute(timestamp_comment.getSec()).toDate();
+
+            if(currentTopicForConvo.getArguments().containsKey(CurrentTopicForConvo.TSECONDS))
+            {
+                long ts=currentTopicForConvo.getArguments().getLong(CurrentTopicForConvo.TSECONDS);
+                android.text.format.DateFormat df =
+                        new android.text.format.DateFormat();
+                String output=df.format("yyyy-MM-dd hh:mm:ss a",
+                                lm)
+                        .toString();
+                Log.i("shareDayConvo","sd1 output="+output+" "+lm.getTime());
+
+                Log.i("getCommentsUnderTmeStmp",output
+                        +" conversation_id="+conversation_id
+                        +" h="+head_comment.getComment_id()+" "+lm.getTime());
+
+                query= CloudWorker.getLetsTalkComments()
+                        .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                        .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                        .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                        .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                        .whereEqualTo(OrgFields.COMMENT_TYPE,Comment.ANSWER)
+                        .whereGreaterThanOrEqualTo(OrgFields.USER_CREATED_DATE,new Date(ts))
+                        .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING);
+            }
+
+
+
+        }
+        return query;
+    }
+
+
 
 }

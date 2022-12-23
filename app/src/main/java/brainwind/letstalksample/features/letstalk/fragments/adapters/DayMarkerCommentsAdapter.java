@@ -38,7 +38,7 @@ public class DayMarkerCommentsAdapter extends BookmarkCommentsAdapter
         super(current_fragment);
     }
 
-    public void categorizeMorningNoonAfternoonNight(CommentAdapter.CommentHolder holder, Comment comment, int position)
+    /*public void categorizeMorningNoonAfternoonNight(CommentAdapter.CommentHolder holder, Comment comment, int position)
     {
 
         org.joda.time.LocalDateTime localDateTime=
@@ -95,6 +95,8 @@ public class DayMarkerCommentsAdapter extends BookmarkCommentsAdapter
 
 
     }
+
+     */
 
 
 

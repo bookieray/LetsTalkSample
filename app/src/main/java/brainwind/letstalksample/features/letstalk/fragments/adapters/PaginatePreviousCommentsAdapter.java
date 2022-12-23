@@ -35,13 +35,14 @@ public class PaginatePreviousCommentsAdapter extends ShareConvoTimestampAdapter
         if(getItemViewType(position)!=-1)
         {
             Comment comment=commentListUnderHeadComment.get(position);
-
+            holder.loading_prev_comments.setVisibility(View.GONE);
             if(comment.isIs_timestamp())
             {
                 if(no_more_comments_previous.containsKey(comment.getTimestamp()))
                 {
                     holder.view_older.setVisibility(View.GONE);
                     holder.loading_prev_comments.setVisibility(View.GONE);
+                    Log.i("fhjsgfdka","a "+position);
                 }
                 else
                 {
@@ -50,19 +51,32 @@ public class PaginatePreviousCommentsAdapter extends ShareConvoTimestampAdapter
                     {
                         holder.loading_prev_comments.setVisibility(View.VISIBLE);
                         holder.view_older.setVisibility(View.GONE);
-                        Log.i("fhjsgfdka","d");
+                        Log.i("fhjsgfdka","b "+position);
                     }
                     else {
 
                         if(timestamps_comments.containsKey(comment.getTimestamp()))
                         {
-                            holder.view_older.setVisibility(View.VISIBLE);
+
+                            if(timestamps_comments.get(comment.getTimestamp()).size()>=9)
+                            {
+                                holder.view_older.setVisibility(View.VISIBLE);
+                                Log.i("fhjsgfdka","c "+position);
+                                setUpViewOlder(holder,position);
+                            }
+                            else
+                            {
+                                holder.view_older.setVisibility(View.GONE);
+                                Log.i("fhjsgfdka","d "+position);
+                            }
                             holder.loading_prev_comments.setVisibility(View.GONE);
-                            setUpViewOlder(holder,position);
+
                         }
                         else
                         {
+                            Log.i("fhjsgfdka","e "+position);
                             holder.view_older.setVisibility(View.GONE);
+                            holder.loading_prev_comments.setVisibility(View.GONE);
                         }
                     }
 
@@ -89,7 +103,6 @@ public class PaginatePreviousCommentsAdapter extends ShareConvoTimestampAdapter
                                         .view_older_txt
                                         .getContext()
                                 , R.anim.pulse));
-        holder.view_older.setVisibility(View.VISIBLE);
         holder.view_older.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

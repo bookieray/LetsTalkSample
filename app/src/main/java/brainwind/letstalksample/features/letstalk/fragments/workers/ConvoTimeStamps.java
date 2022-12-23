@@ -120,27 +120,27 @@ public class ConvoTimeStamps extends CommentWorker
             if(comment_filter.getSelectedItemPosition()==0)
             {
                 //All
-                qtxt=conversation_id+"_"+head_comment.getComment_id()+"_"+Comment.AGREES;
+                qtxt=head_comment.getComment_id()+"_"+Comment.AGREES;
             }
             else if(comment_filter.getSelectedItemPosition()==1)
             {
                 //Agree
-                qtxt=conversation_id+"_"+head_comment.getComment_id()+"_"+Comment.AGREES;
+                qtxt=head_comment.getComment_id()+"_"+Comment.AGREES;
             }
             else if(comment_filter.getSelectedItemPosition()==2)
             {
                 //Disagree
-                qtxt=conversation_id+"_"+head_comment.getComment_id()+"_"+Comment.DISAGREES;
+                qtxt=head_comment.getComment_id()+"_"+Comment.DISAGREES;
             }
             else if(comment_filter.getSelectedItemPosition()==3)
             {
                 //Question
-                qtxt=conversation_id+"_"+head_comment.getComment_id()+"_"+Comment.QUESTION;
+                qtxt=head_comment.getComment_id()+"_"+Comment.QUESTION;
             }
             else if(comment_filter.getSelectedItemPosition()==4)
             {
                 //Answers
-                qtxt=conversation_id+"_"+head_comment.getComment_id()+"_"+Comment.ANSWER;
+                qtxt=head_comment.getComment_id()+"_"+Comment.ANSWER;
             }
 
 

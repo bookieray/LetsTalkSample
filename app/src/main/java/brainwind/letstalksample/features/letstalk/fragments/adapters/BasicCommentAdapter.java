@@ -1,6 +1,7 @@
 package brainwind.letstalksample.features.letstalk.fragments.adapters;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 
@@ -10,6 +11,8 @@ import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.HashMap;
+
 import brainwind.letstalksample.R;
 import brainwind.letstalksample.data.utilities.NumUtils;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
@@ -17,7 +20,10 @@ import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 public class BasicCommentAdapter extends TimestampCommentAdapter
 {
 
+    public int last_known_pos=-1;
     public boolean is_loading=true;
+    public HashMap<String,Boolean> no_more_comments_next=new HashMap<String,Boolean>();
+    public HashMap<String,String> started_loading_next_coments =new HashMap<String,String>();
     @Override
     public void onBindViewHolder(@NonNull CommentHolder holder, int position) {
         super.onBindViewHolder(holder, position);
@@ -140,9 +146,16 @@ public class BasicCommentAdapter extends TimestampCommentAdapter
 
 
             }
-
-            if(comment.isSent())
+            else if(comment.getComment_id().isEmpty()==false)
             {
+                Log.i("musjdkas",comment.getConversation_id()+"_"+comment.getHead_comment_id()+"_"+comment.getComment_type()+" "+comment.getComment_id()+" "+comment.getTimestamp());
+            }
+
+            if(comment.isSent()||position<last_known_pos)
+            {
+                comment.setSent(true);
+                commentListUnderHeadComment.set(position,comment);
+
                 Glide.with(holder.comment_view.getContext())
                         .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_24))
                         .into(holder.sent_status);
@@ -161,6 +174,36 @@ public class BasicCommentAdapter extends TimestampCommentAdapter
                 Glide.with(holder.comment_view.getContext())
                         .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_access_time_24))
                         .into(holder.sent_status);
+            }
+
+            if(comment.getReply_comment().isEmpty()==false)
+            {
+
+                holder.replied_area.setVisibility(View.VISIBLE);
+                holder.replied_comment_name.setText(comment.getReply_comment_name());
+                if(comment.isIn_response_agree())
+                {
+                    holder.reply_comment_type.setText("Agrees");
+                    holder.reply_comment_type.setTextColor(holder.comment_name.getContext().getResources().getColor(R.color.green));
+                    holder.reply_agree_disagree_flag.setBackgroundColor(holder.comment_name.getContext().getResources().getColor(R.color.green));
+                }
+                if(comment.isIn_response_disagree())
+                {
+                    holder.reply_comment_type.setText("Disagrees");
+                    holder.reply_comment_type.setTextColor(holder.comment_name.getContext().getResources().getColor(R.color.red));
+                    holder.reply_agree_disagree_flag.setBackgroundColor(holder.comment_name.getContext().getResources().getColor(R.color.red));
+                }
+                if(comment.isIn_response_question())
+                {
+                    holder.reply_comment_type.setText("Question");
+                    holder.reply_comment_type.setTextColor(holder.comment_name.getContext().getResources().getColor(R.color.blue));
+                    holder.reply_agree_disagree_flag.setBackgroundColor(holder.comment_name.getContext().getResources().getColor(R.color.blue));
+                }
+
+            }
+            else
+            {
+                holder.replied_area.setVisibility(View.GONE);
             }
 
         }

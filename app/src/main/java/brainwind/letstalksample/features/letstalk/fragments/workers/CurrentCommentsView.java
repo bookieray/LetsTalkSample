@@ -37,6 +37,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 
+import brainwind.letstalksample.CommentListener;
 import brainwind.letstalksample.R;
 import brainwind.letstalksample.data.utilities.NumUtils;
 import brainwind.letstalksample.features.letstalk.fragments.adapters.CommentAdapter;
@@ -178,7 +179,7 @@ public class CurrentCommentsView extends QueryWorker implements LoadingResults {
 
     public void NoHeadCommentView(CommentWorker commentWorker) {
 
-        sharedialog_area.setVisibility(View.VISIBLE);
+        //sharedialog_area.setVisibility(View.VISIBLE);
         no_data_area_label_sharedialog.setText("There are no comments in this convo yet, make a comment or share convo");
         head_comment_parent_view.setVisibility(View.GONE);
         sharedialog_button.setOnClickListener(new View.OnClickListener() {
@@ -230,6 +231,11 @@ public class CurrentCommentsView extends QueryWorker implements LoadingResults {
 
             }
         });
+        CommentListener commentListener=(CommentListener) commentWorker.getCurrentTopicFragment().getActivity();
+        if(commentListener!=null)
+        {
+            commentListener.foundHeadComment(null);
+        }
 
     }
 

@@ -7,12 +7,18 @@
     android:layout_height="match_parent"
     tools:context=".features.letstalk.fragments.CurrentTopicForConvo">
 
-
+    <!--The RecyclerView for the commentary-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/comment_list"
+        android:layout_width="match_parent"
+        android:layout_height="800dp"
+        />
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/content_area"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -31,6 +37,7 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:visibility="gone"
+                android:layout_below="@id/head_comment_parent_view"
                 >
 
                 <TextView
@@ -57,20 +64,21 @@
 
             </RelativeLayout>
 
+
+
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:layout_below="@+id/marker_filter_area"
+                >
 
-                <!--The RecyclerView for the commentary-->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/comment_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+
 
                 <include layout="@layout/sharedialog_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginTop="10dp"/>
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone"/>
 
 
 
@@ -78,9 +86,10 @@
             </RelativeLayout>
 
 
-        </LinearLayout>
+        </RelativeLayout>
 
     </FrameLayout>
+
 
 
 </RelativeLayout>

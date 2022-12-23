@@ -90,6 +90,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 import com.scwang.wave.MultiWaveHeader;
 
@@ -125,7 +129,7 @@ import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
 
 public class LetsTalkManageEach extends AppCompatActivity
-        implements CommentListener, LoadingListener {
+        implements CommentListener, LoadingListener, Trx {
 
     private static int OPERATION=0;
     private static final int GETTING_TIME_OFFSET=1;
@@ -210,9 +214,8 @@ public class LetsTalkManageEach extends AppCompatActivity
         Log.i("and_life_cycle","onCreate estimatedServerTimeMs="
                 +estimatedServerTimeMs);
 
-
-
-
+        Intent intent=new Intent(this,TestGroupConvo.class);
+        startActivity(intent);
 
     }
 
@@ -298,9 +301,11 @@ public class LetsTalkManageEach extends AppCompatActivity
                                         if (isKeyboardShowing) {
                                             isKeyboardShowing = false;
                                             currentTopicForConvo1.getCommentWorker().getCommentAdapter().notifyDataSetChanged();
+                                            Log.i("chckCmmntLstKyBard","L");
                                             if(last_reading_pos>0)
                                             {
 
+                                                Log.i("chckCmmntLstKyBard","L last_reading_pos="+last_reading_pos);
                                                 final int jk=last_reading_pos;
                                                 comment_list.scrollToPosition(jk);
                                                 comment_list.postDelayed(new Runnable() {
@@ -1214,30 +1219,39 @@ public class LetsTalkManageEach extends AppCompatActivity
     private void notifyOffline()
     {
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+        try
+        {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
 
-                disable_typing_area.setVisibility(View.VISIBLE);
-                if(emojicon_edit_text.isFocused())
-                {
-                    tellUserMsg("You are currently offline");
+                    disable_typing_area.setVisibility(View.VISIBLE);
+                    if(emojicon_edit_text.isFocused())
+                    {
+                        tellUserMsg("You are currently offline");
+
+                    }
+                    else
+                    {
+                        Snackbar.make(rootview,
+                                "You are currently offline",
+                                Snackbar.LENGTH_SHORT).show();
+                    }
 
                 }
-                else
-                {
-                    Snackbar.make(rootview,
-                            "You are currently offline",
-                            Snackbar.LENGTH_SHORT).show();
-                }
+            });
+        }
+        catch(Exception exception)
+        {
 
-            }
-        });
+        }
 
     }
 
     @BindView(R.id.disable_typing_area)
     FrameLayout disable_typing_area;
+    @BindView(R.id.disable_typing_area_label)
+    TextView disable_typing_area_label;
 
     @OnClick({R.id.disable_typing_area,R.id.disable_typing_area_label})
     void TellUserOffline()
@@ -1355,6 +1369,55 @@ public class LetsTalkManageEach extends AppCompatActivity
 
 
         }
+
+    }
+
+    @Override
+    public void OndisableTypingArea(String message) {
+        disable_typing_area.setVisibility(View.VISIBLE);
+        disable_typing_area_label.setText(message);
+    }
+
+    @Override
+    public void OnenableTypingArea(String message) {
+        disable_typing_area.setVisibility(View.GONE);
+        disable_typing_area_label.setText(message);
+    }
+
+    @Override
+    public void listenForQuery(Query query) {
+
+        query.limit(1).addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+
+                if(current_Topic_for_convo!=null)
+                {
+                    Log.i("Kushkdas","s1");
+                    CurrentTopicForConvo currentTopicForConvo=(CurrentTopicForConvo)current_Topic_for_convo;
+                    if(currentTopicForConvo!=null)
+                    {
+                        Log.i("Kushkdas","s2");
+                        if(currentTopicForConvo.getCommentWorker()!=null)
+                        {
+                            Log.i("Kushkdas","s3");
+                            currentTopicForConvo.getCommentWorker().Pokl(value, error);
+                        }
+                    }
+                }
+                Log.i("Kushkdas","value="+(value!=null)+" error="+(error!=null));
+
+                if(value!=null)
+                {
+                    Log.i("Kushkdas","value.isEmpty() "+(value.isEmpty()));
+                }
+                if(error!=null)
+                {
+                    Log.i("Kushkdas",error.getMessage());
+                }
+
+            }
+        });
 
     }
 
@@ -1814,6 +1877,7 @@ public class LetsTalkManageEach extends AppCompatActivity
         commentCreator=new CommentCreator(this,
                 current_Topic_for_convo,bookieActivity);
         commentCreator.setHead_comment(head_comment);
+        commentCreator.setReplying_comment(replying_comment);
         firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
         if(emojicon_edit_text.getText().toString().isEmpty()==false)
         {
@@ -1874,7 +1938,7 @@ public class LetsTalkManageEach extends AppCompatActivity
         }
         else
         {
-            typing_area.setVisibility(View.GONE);
+            typing_area.setVisibility(View.VISIBLE);
         }
 
     }
@@ -2168,6 +2232,7 @@ public class LetsTalkManageEach extends AppCompatActivity
     @Override
     public void messageUpdated() {
         emojicon_edit_text.setText("");
+        OnCancelReply();
     }
 
     @Override

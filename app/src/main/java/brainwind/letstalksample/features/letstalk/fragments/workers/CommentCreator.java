@@ -442,6 +442,13 @@ public class CommentCreator
     private void submitCommentToCloud(boolean under_head_comment,int comment_type)
     {
 
+        EmojiconEditText emojicon_edit_text=(EmojiconEditText)
+                activity.findViewById(R.id.emojicon_edit_text);
+
+        EmojiconEditText emojicon_edit_text2=(EmojiconEditText)
+                activity.findViewById(R.id.emojicon_edit_text);
+        final String message=emojicon_edit_text.getText().toString();
+
         CurrentTopicForConvo currentTopicForConvo=(CurrentTopicForConvo)current_topic_frag;
         if(currentTopicForConvo!=null)
         {
@@ -462,332 +469,325 @@ public class CommentCreator
         • IN_RESPONSE_DISAGREE
         • IN_RESPONSE_QUESTION
          */
-        UserInfoDatabase.databaseWriteExecutor
-                .execute(new Runnable() {
-                    @Override
-                    public void run() {
 
-                        UserInfoDao userInfoDao=UserInfoDatabase.getDatabase(activity)
-                                .userInfoDao();
-                        FirebaseUser firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
-                        final UserInfo userInfo=userInfoDao.getUserInfo(firebaseUser.getUid());
-                        activity.runOnUiThread(new Runnable() {
+
+        Log.i("submitCommentToCloud","editText.isEmpty="+(emojicon_edit_text.getText().toString().isEmpty())+" replying_comment!=null "+(replying_comment!=null));
+        if(message.isEmpty()==false)
+        {
+
+            if(message.isEmpty()==false)
+            {
+                UserInfoDatabase.databaseWriteExecutor
+                        .execute(new Runnable() {
                             @Override
                             public void run() {
 
-                                if(userInfo!=null)
-                                {
+                                UserInfoDao userInfoDao=UserInfoDatabase.getDatabase(activity)
+                                        .userInfoDao();
+                                FirebaseUser firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
+                                final UserInfo userInfo=userInfoDao.getUserInfo(firebaseUser.getUid());
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
 
-                                    Map<String,Object> values=new HashMap<String,Object>();
-
-                                    boolean has_intent_data=activity.getIntent().hasExtra(OrgFields.CONVERSATION_ID)
-                                            &activity.getIntent().hasExtra(OrgFields.IS_STANDALONE_CONVO)
-                                            &activity.getIntent().hasExtra(OrgFields.TITLE)
-                                            &activity.getIntent().hasExtra(OrgFields.ORG_MAIN_COLOR)
-                                            &activity.getIntent().hasExtra(OrgFields.ORG_NAME)
-                                            &activity.getIntent().hasExtra(OrgFields.ORGID)
-                                            &activity.getIntent().hasExtra(OrgFields.UID)
-                                            &activity.getIntent().hasExtra(OrgFields.ADMIN_NAME)
-                                            &activity.getIntent().hasExtra(OrgFields.ADMIN_PROFILE_PATH)
-                                            &activity.getIntent().hasExtra(OrgFields.ACTIVITY_TYPE);
-                                    Memory memory=new Memory(activity);
-                                    String jnm=memory.getString(OrgFields.SERVER_TIME_OFFSET);
-
-                                    if(jnm.isEmpty()==false)
-                                    {
-
-                                        long localtimeoffset=Long.parseLong(jnm);
-                                        long estimatedServerTimeMs = System.currentTimeMillis() + localtimeoffset;
-                                        org.joda.time.LocalDateTime localDateTime
-                                                =new org.joda.time.LocalDateTime(estimatedServerTimeMs);
-                                        values.put(OrgFields.DAY,localDateTime.getDayOfMonth());
-                                        values.put(OrgFields.MONTH,localDateTime.getMonthOfYear());
-                                        values.put(OrgFields.YEAR,localDateTime.getYear());
-
-                                    }
-                                    //commentator's details who is talking
-                                    values.put(OrgFields.USER_FIRSTNAME,userInfo.firstname);
-                                    values.put(OrgFields.USER_LASTNAME,userInfo.lastname);
-                                    values.put(OrgFields.UID,firebaseUser.getUid());
-                                    values.put(OrgFields.USER_PROFILE_PICTURE,userInfo.profile_path);
-                                    values.put(OrgFields.USER_CELLPHONE,userInfo.cellphone);
-                                    //the comment
-                                    if(comment_type==Comment.AGREES)
-                                    {
-
-                                        //Gets tangled up with the comments in the query
-                                        //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
-                                        values.put(OrgFields.COMMENT_TYPE,Comment.AGREES);
-                                    }
-                                    if(comment_type==Comment.DISAGREES)
-                                    {
-                                        //Gets tangled up with the comments in the query
-                                        //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
-                                        values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES);
-                                    }
-                                    if(comment_type==Comment.QUESTION)
-                                    {
-                                        //Gets tangled up with the comments in the query
-                                        //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
-                                        values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION);
-                                    }
-                                    if(comment_type==Comment.ANSWER)
-                                    {
-                                        //Gets tangled up with the comments in the query
-                                        //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
-                                        values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER);
-                                    }
-
-                                    ImageView emoji_button=(ImageView)
-                                            activity.findViewById(R.id.emoji_button);
-                                    EmojiconEditText emojicon_edit_text=(EmojiconEditText)
-                                            activity.findViewById(R.id.emojicon_edit_text);
-                                    values.put(OrgFields.COMMENT,emojicon_edit_text.getText().toString());
-
-                                    //when they said it
-                                    //orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING)
-                                    values.put(OrgFields.USER_CREATED_DATE, FieldValue.serverTimestamp());
-                                    values.put(OrgFields.USER_MODIFIED_DATE, FieldValue.serverTimestamp());
-                                    values.put(OrgFields.IS_NEW_TOPIC,false);
-                                    //who they are talking to
-                                    if(replying_comment!=null)
-                                    {
-                                        values.put(OrgFields.IS_RESPONSE_COMMENT,true);
-                                        values.put(OrgFields.REPLIED_COMMENT_ID,replying_comment.getComment_id());
-                                        values.put(OrgFields.REPLIED_COMMENT_TYPE,replying_comment.getComment_type());
-                                        values.put(OrgFields.REPLIED_COMMENT,replying_comment.getComment());
-                                        values.put(OrgFields.REPLIED_COMMENTATOR_NAME,replying_comment.getCommentator_name());
-                                        if(replying_comment.getHead_comment_id().isEmpty()==false)
+                                        if(userInfo!=null)
                                         {
-                                            //gets tangled in the query whereEqualTo(OrgFields.PARENT_COMMENT_ID,head_comment.getComment_id())
-                                            values.put(OrgFields.PARENT_COMMENT_ID,replying_comment.getHead_comment_id());
-                                            //whereEqualTo(OrgFields.IS_NEW_TOPIC,false)
 
-                                        }
+                                            Map<String,Object> values=new HashMap<String,Object>();
 
-                                        if(replying_comment.getComment_type()==Comment.DISAGREES)
-                                        {
+                                            boolean has_intent_data=activity.getIntent().hasExtra(OrgFields.CONVERSATION_ID)
+                                                    &activity.getIntent().hasExtra(OrgFields.IS_STANDALONE_CONVO)
+                                                    &activity.getIntent().hasExtra(OrgFields.TITLE)
+                                                    &activity.getIntent().hasExtra(OrgFields.ORG_MAIN_COLOR)
+                                                    &activity.getIntent().hasExtra(OrgFields.ORG_NAME)
+                                                    &activity.getIntent().hasExtra(OrgFields.ORGID)
+                                                    &activity.getIntent().hasExtra(OrgFields.UID)
+                                                    &activity.getIntent().hasExtra(OrgFields.ADMIN_NAME)
+                                                    &activity.getIntent().hasExtra(OrgFields.ADMIN_PROFILE_PATH)
+                                                    &activity.getIntent().hasExtra(OrgFields.ACTIVITY_TYPE);
+                                            Memory memory=new Memory(activity);
+                                            String jnm=memory.getString(OrgFields.SERVER_TIME_OFFSET);
+
+                                            if(jnm.isEmpty()==false)
+                                            {
+
+                                                long localtimeoffset=Long.parseLong(jnm);
+                                                long estimatedServerTimeMs = System.currentTimeMillis() + localtimeoffset;
+                                                org.joda.time.LocalDateTime localDateTime
+                                                        =new org.joda.time.LocalDateTime(estimatedServerTimeMs);
+                                                values.put(OrgFields.DAY,localDateTime.getDayOfMonth());
+                                                values.put(OrgFields.MONTH,localDateTime.getMonthOfYear());
+                                                values.put(OrgFields.YEAR,localDateTime.getYear());
+
+                                            }
+                                            //commentator's details who is talking
+                                            values.put(OrgFields.USER_FIRSTNAME,userInfo.firstname);
+                                            values.put(OrgFields.USER_LASTNAME,userInfo.lastname);
+                                            values.put(OrgFields.UID,firebaseUser.getUid());
+                                            values.put(OrgFields.USER_PROFILE_PICTURE,userInfo.profile_path);
+                                            values.put(OrgFields.USER_CELLPHONE,userInfo.cellphone);
+                                            //the comment
                                             if(comment_type==Comment.AGREES)
                                             {
-                                                values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES);
+
+                                                //Gets tangled up with the comments in the query
+                                                //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                                                values.put(OrgFields.COMMENT_TYPE,Comment.AGREES);
                                             }
                                             if(comment_type==Comment.DISAGREES)
                                             {
-                                                values.put(OrgFields.COMMENT_TYPE,Comment.AGREES);
+                                                //Gets tangled up with the comments in the query
+                                                //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
+                                                values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES);
                                             }
                                             if(comment_type==Comment.QUESTION)
                                             {
+                                                //Gets tangled up with the comments in the query
+                                                //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
                                                 values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION);
                                             }
-                                        }
-                                        else
-                                        {
-                                            values.put(OrgFields.COMMENT_TYPE,comment_type);
-                                            if(replying_comment.getComment_type()==Comment.QUESTION)
+                                            if(comment_type==Comment.ANSWER)
                                             {
-                                                values.put(OrgFields.IN_RESPONSE_QUESTION,true);
+                                                //Gets tangled up with the comments in the query
+                                                //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.QUESTION)
+                                                values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER);
                                             }
-                                        }
 
+                                            ImageView emoji_button=(ImageView)
+                                                    activity.findViewById(R.id.emoji_button);
 
-                                        if(replying_comment.getComment_type()==Comment.AGREES)
-                                        {
-                                            values.put(OrgFields.IN_RESPONSE_AGREE,true);
-                                            //Gets tangled up with the comments in the query
-                                            //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
+                                            values.put(OrgFields.COMMENT,message);
 
-                                        }
-                                        if(replying_comment.getComment_type()==Comment.DISAGREES)
-                                        {
-                                            values.put(OrgFields.IN_RESPONSE_DISAGREE,true);
-                                            //Gets tangled up with the comments in the query
-                                            //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
-
-                                        }
-
-
-                                    }
-                                    else
-                                    {
-                                        values.put(OrgFields.IS_RESPONSE_COMMENT,false);
-                                        if(under_head_comment&head_comment!=null)
-                                        {
-                                            //whereEqualTo(OrgFields.IS_NEW_TOPIC,false)
+                                            //when they said it
+                                            //orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.ASCENDING)
+                                            values.put(OrgFields.USER_CREATED_DATE, FieldValue.serverTimestamp());
+                                            values.put(OrgFields.USER_MODIFIED_DATE, FieldValue.serverTimestamp());
                                             values.put(OrgFields.IS_NEW_TOPIC,false);
-                                            values.put(OrgFields.PARENT_COMMENT_ID,head_comment.getComment_id());
-
-                                        }
-                                        else
-                                        {
-                                            values.put(OrgFields.IS_NEW_TOPIC,true);
-
-                                        }
-                                        values.put(OrgFields.IN_RESPONSE_AGREE,false);
-
-
-
-                                    }
-
-                                    //orderBy(OrgFields.NUM_COMMENTS, Query.Direction.DESCENDING)
-                                    values.put(OrgFields.NUM_COMMENTS,0);
-                                    values.put(OrgFields.CONVERSATION_ID,bookieActivity.getActivity_id());
-                                    values.put(OrgFields.ACTIVITY_ID,bookieActivity.getActivity_id());
-                                    values.put(OrgFields.IS_STANDALONE_CONVO,bookieActivity.isIs_standalone());
-                                    values.put(OrgFields.IS_ACTIVITY_BASED,(bookieActivity.isIs_standalone()==false));
-                                    values.put(OrgFields.IS_ACTIVITY_REFERENCE,(bookieActivity.isIs_standalone()==false));
-
-                                    //the conversation this comment belongs to
-                                    if(bookieActivity!=null)
-                                    {
-                                        values.put(OrgFields.ACTIVITY_TYPE,bookieActivity.getActivity_type());
-                                    }
-                                    else if(has_intent_data)
-                                    {
-                                        String activity_type_txt=activity.getIntent()
-                                                .getStringExtra(OrgFields.ACTIVITY_TYPE);
-                                        values.put(OrgFields.ACTIVITY_TYPE,activity_type_txt);
-                                    }
-                                    if(bookieActivity.isIs_standalone()==false)
-                                    {
-                                        values.put(OrgFields.ACTIVITY_REFERENCE,
-                                                bookieActivity.getActivity_reference());
-                                    }
-
-                                    //the organization this conversation belongs to
-                                    values.put(OrgFields.ORGID,bookieActivity.getOrgid());
-                                    values.put(OrgFields.ORG_NAME,bookieActivity.getOrgname());
-                                    values.put(OrgFields.ORG_MAIN_COLOR,bookieActivity.getOrg_main_color());
-
-
-                                    CloudWorker.getLetsTalkComments()
-                                            .add(values)
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-
-                                                    Log.i("submitCommentToCloud","onFailure "+e.getMessage());
+                                            //who they are talking to
+                                            if(replying_comment!=null)
+                                            {
+                                                values.put(OrgFields.IS_RESPONSE_COMMENT,true);
+                                                values.put(OrgFields.REPLIED_COMMENT_ID,replying_comment.getComment_id());
+                                                values.put(OrgFields.REPLIED_COMMENT_TYPE,replying_comment.getComment_type());
+                                                values.put(OrgFields.REPLIED_COMMENT,replying_comment.getComment());
+                                                values.put(OrgFields.REPLIED_COMMENTATOR_NAME,replying_comment.getCommentator_name());
+                                                if(replying_comment.getHead_comment_id().isEmpty()==false)
+                                                {
+                                                    //gets tangled in the query whereEqualTo(OrgFields.PARENT_COMMENT_ID,head_comment.getComment_id())
+                                                    values.put(OrgFields.PARENT_COMMENT_ID,replying_comment.getHead_comment_id());
+                                                    //whereEqualTo(OrgFields.IS_NEW_TOPIC,false)
 
                                                 }
-                                            })
-                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                @Override
-                                                public void onSuccess(DocumentReference documentReference) {
 
-                                                    Memory memory=new Memory(activity);
-                                                    String hj=memory.getString(OrgFields.SERVER_TIME_OFFSET);
-                                                    long estimatedServerTimeMs =0;
-
-                                                    if(hj.isEmpty()==false)
+                                                if(replying_comment.getComment_type()==Comment.DISAGREES)
+                                                {
+                                                    if(comment_type==Comment.AGREES)
                                                     {
-                                                        long localtimeoffset=Long.parseLong(hj);
-                                                        estimatedServerTimeMs = System.currentTimeMillis() + localtimeoffset;
+                                                        values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES);
                                                     }
-                                                    org.joda.time.LocalDateTime localDateTime
-                                                            =new org.joda.time.LocalDateTime(estimatedServerTimeMs);
-
-                                                    Log.i("submitCommentToCloud","onSuccess "+bookieActivity.getActivity_id()
-                                                            +" estimatedServerTimeMs="+estimatedServerTimeMs
-                                                            +" day_of_month="+localDateTime.getDayOfMonth()
-                                                            +" h="+(head_comment!=null)+" h2="+under_head_comment
-                                                            +" "+bookieActivity.getActivity_id());
-
-                                                    DatabaseReference mDatabase;
-                                                    mDatabase = FirebaseDatabase.getInstance().getReference();
-
-                                                    if(replying_comment!=null)
+                                                    if(comment_type==Comment.DISAGREES)
                                                     {
-
-                                                        if(replying_comment.getHead_comment_id().isEmpty()==false)
-                                                        {
-
-                                                            mDatabase.child(bookieActivity.getActivity_id()
-                                                                            +"_"+replying_comment.getHead_comment_id())
-                                                                    .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                    .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                    .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                    .setValue(documentReference.getId());
-                                                            mDatabase.child(bookieActivity.getActivity_id()
-                                                                            +"_"+replying_comment.getHead_comment_id()+"_"+comment_type)
-                                                                    .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                    .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                    .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                    .setValue(documentReference.getId());
-                                                            incrementCommentsFor(replying_comment.getComment_id());
-
-                                                        }
-
-                                                        replying_comment=null;
-                                                        CommentListener commentListener=(CommentListener) activity;
-                                                        CommentListener commentListener2=(CommentListener) current_topic_frag;
-                                                        if(commentListener!=null)
-                                                        {
-                                                            commentListener.OnCancelReply();
-                                                        }
-                                                        if(commentListener2!=null)
-                                                        {
-                                                            commentListener2.OnCancelReply();
-                                                        }
-
-
+                                                        values.put(OrgFields.COMMENT_TYPE,Comment.AGREES);
                                                     }
-                                                    else if(under_head_comment&head_comment!=null)
+                                                    if(comment_type==Comment.QUESTION)
                                                     {
-                                                        mDatabase.child(bookieActivity.getActivity_id()+"_"+head_comment.getComment_id())
-                                                                .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                .setValue(documentReference.getId())
-                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                    @Override
-                                                                    public void onSuccess(Void unused) {
-                                                                        Log.i("submitCommentToCloud","realtime database write succeeded");
-                                                                    }
-                                                                })
-                                                                .addOnFailureListener(new OnFailureListener() {
-                                                                    @Override
-                                                                    public void onFailure(@NonNull Exception e) {
-                                                                        Log.i("submitCommentToCloud","realtime database write failed "+e.getMessage());
-                                                                    }
-                                                                });
-                                                        mDatabase.child(bookieActivity.getActivity_id()+"_"+head_comment.getComment_id()+"_"+comment_type)
-                                                                .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                .setValue(documentReference.getId());
-                                                        incrementCommentsFor(head_comment.getComment_id());
+                                                        values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION);
                                                     }
-                                                    else
+                                                }
+                                                else
+                                                {
+                                                    values.put(OrgFields.COMMENT_TYPE,comment_type);
+                                                    if(replying_comment.getComment_type()==Comment.QUESTION)
                                                     {
-
-                                                        mDatabase.child(bookieActivity.getActivity_id()+"_"+documentReference.getId())
-                                                                .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                .setValue(documentReference.getId());
-                                                        mDatabase.child(bookieActivity.getActivity_id()+"_"+documentReference.getId()+"_"+comment_type)
-                                                                .child('"'+String.valueOf(localDateTime.getYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
-                                                                .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
-                                                                .setValue(documentReference.getId());
-                                                        incrementCommentsFor(documentReference.getId());
-
+                                                        values.put(OrgFields.IN_RESPONSE_QUESTION,true);
                                                     }
+                                                }
 
 
-
-
+                                                if(replying_comment.getComment_type()==Comment.AGREES)
+                                                {
+                                                    values.put(OrgFields.IN_RESPONSE_AGREE,true);
+                                                    //Gets tangled up with the comments in the query
+                                                    //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.AGREES)
 
                                                 }
-                                            });
+                                                if(replying_comment.getComment_type()==Comment.DISAGREES)
+                                                {
+                                                    values.put(OrgFields.IN_RESPONSE_DISAGREE,true);
+                                                    //Gets tangled up with the comments in the query
+                                                    //whereEqualTo(OrgFields.COMMENT_TYPE,Comment.DISAGREES)
 
-                                }
+                                                }
+
+
+                                            }
+                                            else
+                                            {
+                                                values.put(OrgFields.IS_RESPONSE_COMMENT,false);
+                                                if(under_head_comment&head_comment!=null)
+                                                {
+                                                    //whereEqualTo(OrgFields.IS_NEW_TOPIC,false)
+                                                    values.put(OrgFields.IS_NEW_TOPIC,false);
+                                                    values.put(OrgFields.PARENT_COMMENT_ID,head_comment.getComment_id());
+
+                                                }
+                                                else
+                                                {
+                                                    values.put(OrgFields.IS_NEW_TOPIC,true);
+
+                                                }
+                                                values.put(OrgFields.IN_RESPONSE_AGREE,false);
+
+
+
+                                            }
+
+                                            //orderBy(OrgFields.NUM_COMMENTS, Query.Direction.DESCENDING)
+                                            values.put(OrgFields.NUM_COMMENTS,0);
+                                            values.put(OrgFields.CONVERSATION_ID,bookieActivity.getActivity_id());
+                                            values.put(OrgFields.ACTIVITY_ID,bookieActivity.getActivity_id());
+                                            values.put(OrgFields.IS_STANDALONE_CONVO,bookieActivity.isIs_standalone());
+                                            values.put(OrgFields.IS_ACTIVITY_BASED,(bookieActivity.isIs_standalone()==false));
+                                            values.put(OrgFields.IS_ACTIVITY_REFERENCE,(bookieActivity.isIs_standalone()==false));
+
+                                            //the conversation this comment belongs to
+                                            if(bookieActivity!=null)
+                                            {
+                                                values.put(OrgFields.ACTIVITY_TYPE,bookieActivity.getActivity_type());
+                                            }
+                                            else if(has_intent_data)
+                                            {
+                                                String activity_type_txt=activity.getIntent()
+                                                        .getStringExtra(OrgFields.ACTIVITY_TYPE);
+                                                values.put(OrgFields.ACTIVITY_TYPE,activity_type_txt);
+                                            }
+                                            if(bookieActivity.isIs_standalone()==false)
+                                            {
+                                                values.put(OrgFields.ACTIVITY_REFERENCE,
+                                                        bookieActivity.getActivity_reference());
+                                            }
+
+                                            //the organization this conversation belongs to
+                                            values.put(OrgFields.ORGID,bookieActivity.getOrgid());
+                                            values.put(OrgFields.ORG_NAME,bookieActivity.getOrgname());
+                                            values.put(OrgFields.ORG_MAIN_COLOR,bookieActivity.getOrg_main_color());
+
+
+                                            CloudWorker.getLetsTalkComments()
+                                                    .add(values)
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+
+                                                            Log.i("submitCommentToCloud","onFailure "+e.getMessage());
+
+                                                        }
+                                                    })
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+
+                                                            Memory memory=new Memory(activity);
+                                                            String hj=memory.getString(OrgFields.SERVER_TIME_OFFSET);
+                                                            long estimatedServerTimeMs =0;
+
+                                                            if(hj.isEmpty()==false)
+                                                            {
+                                                                long localtimeoffset=Long.parseLong(hj);
+                                                                estimatedServerTimeMs = System.currentTimeMillis() + localtimeoffset;
+                                                            }
+                                                            org.joda.time.LocalDateTime localDateTime
+                                                                    =new org.joda.time.LocalDateTime(estimatedServerTimeMs);
+
+                                                            Log.i("submitCommentToCloud","onSuccess "+bookieActivity.getActivity_id()
+                                                                    +" estimatedServerTimeMs="+estimatedServerTimeMs
+                                                                    +" day_of_month="+localDateTime.getDayOfMonth()
+                                                                    +" h="+(head_comment!=null)+" h2="+under_head_comment
+                                                                    +" "+bookieActivity.getActivity_id());
+
+                                                            DatabaseReference mDatabase;
+                                                            mDatabase = FirebaseDatabase.getInstance().getReference();
+
+                                                            if(replying_comment!=null)
+                                                            {
+
+                                                                if(replying_comment.getHead_comment_id().isEmpty()==false)
+                                                                {
+
+
+                                                                    mDatabase.child(replying_comment.getHead_comment_id()+"_"+comment_type)
+                                                                            .child('"'+String.valueOf(localDateTime.getYear())+'"')
+                                                                            .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
+                                                                            .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
+                                                                            .setValue(documentReference.getId());
+                                                                    incrementCommentsFor(replying_comment.getComment_id());
+
+                                                                }
+
+                                                                replying_comment=null;
+                                                                CommentListener commentListener=(CommentListener) activity;
+                                                                CommentListener commentListener2=(CommentListener) current_topic_frag;
+                                                                if(commentListener!=null)
+                                                                {
+                                                                    commentListener.OnCancelReply();
+                                                                }
+                                                                if(commentListener2!=null)
+                                                                {
+                                                                    commentListener2.OnCancelReply();
+                                                                }
+
+
+                                                            }
+                                                            else if(under_head_comment&head_comment!=null)
+                                                            {
+
+                                                                mDatabase.child(head_comment.getComment_id()+"_"+comment_type)
+                                                                        .child('"'+String.valueOf(localDateTime.getYear())+'"')
+                                                                        .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
+                                                                        .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
+                                                                        .setValue(documentReference.getId());
+                                                                incrementCommentsFor(head_comment.getComment_id());
+                                                            }
+                                                            else
+                                                            {
+
+
+                                                                mDatabase.child(documentReference.getId()+"_"+comment_type)
+                                                                        .child('"'+String.valueOf(localDateTime.getYear())+'"')
+                                                                        .child('"'+String.valueOf(localDateTime.getMonthOfYear())+'"')
+                                                                        .child('"'+String.valueOf(localDateTime.getDayOfMonth())+'"')
+                                                                        .setValue(documentReference.getId());
+                                                                incrementCommentsFor(documentReference.getId());
+
+                                                            }
+
+
+
+
+
+                                                        }
+                                                    });
+
+                                        }
+
+                                    }
+                                });
+
 
                             }
                         });
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+
+        }
 
 
-                    }
-                });
 
     }
 
@@ -795,7 +795,16 @@ public class CommentCreator
     {
 
         Map<String,Object> values=new HashMap<String,Object>();
-        values.put(OrgFields.NUM_COMMENTS,FieldValue.increment(1));
+        CurrentTopicForConvo currentTopicForConvo=(CurrentTopicForConvo) this.current_topic_frag;
+
+        if(head_comment.getNum_comments()<currentTopicForConvo.getCommentWorker().getCommentAdapter().commentListUnderHeadComment.size())
+        {
+            values.put(OrgFields.NUM_COMMENTS,FieldValue.increment(1));
+        }
+        else
+        {
+            values.put(OrgFields.NUM_COMMENTS,currentTopicForConvo.getCommentWorker().getCommentAdapter().commentListUnderHeadComment.size());
+        }
 
         CloudWorker.getLetsTalkComments()
                 .document(id)
