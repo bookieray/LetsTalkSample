@@ -1,6 +1,7 @@
 package brainwind.letstalksample.features.letstalk;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
@@ -14,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -49,6 +52,7 @@ import org.joda.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import brainwind.letstalksample.R;
 import brainwind.letstalksample.data.database.CloudWorker;
@@ -546,6 +550,7 @@ public class TestGroup2 extends AppCompatActivity {
             //comment_list.setLayoutManager(new LinearLayoutManager(getContext()));
             comment_list.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL));
             comment_list.setAdapter(testAdapter);
+            checkCommentListKeyBoard();
         }
         testAdapter.is_loading=true;
         testAdapter.commentListUnderHeadComment.clear();
@@ -624,6 +629,113 @@ public class TestGroup2 extends AppCompatActivity {
                 });
 
     }
+    private int getLastVisibleItem(RecyclerView recyclerView) {
+        if (recyclerView.getAdapter().getItemCount() != 0) {
+            //int lastVisibleItemPosition = ((StaggeredGridLayoutManager)recyclerView.getLayoutManager()).findLastVisibleItemPositions();
+            int[] lastVisibleItemPositions = ((StaggeredGridLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).findLastVisibleItemPositions(null);
+            // get maximum element within the list
+            int lastVisibleItemPosition = getLastVisibleItem(lastVisibleItemPositions);
+            return lastVisibleItemPosition;
+        }
+        return -1;
+    }
+    //get last item
+    public int getLastVisibleItem(int[] lastVisibleItemPositions) {
+        int maxSize = 0;
+        for (int i = 0; i < lastVisibleItemPositions.length; i++) {
+            if (i == 0) {
+                maxSize = lastVisibleItemPositions[i];
+            } else if (lastVisibleItemPositions[i] > maxSize) {
+                maxSize = lastVisibleItemPositions[i];
+            }
+        }
+        return maxSize;
+    }
+    //the recyclerview resizes
+    boolean isKeyboardShowing=false;
+    int last_reading_pos=0;
+    private void checkCommentListKeyBoard()
+    {
+        try {
+
+            Log.i("chckCmmntLstKyBard",this.getPackageName());
+            if(comment_list!=null)
+            {
+
+                //RecyclerView comment_list=currentTopicForConvo1.getCommentWorker().getComment_list();
+                Log.i("chckCmmntLstKyBard","comment_list!=null "+(comment_list!=null));
+                if(comment_list!=null)
+                {
+                    comment_list.getViewTreeObserver()
+                            .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                @Override
+                                public void onGlobalLayout() {
+
+                                    Rect r = new Rect();
+                                    comment_list.getWindowVisibleDisplayFrame(r);
+                                    int screenHeight = comment_list.getRootView().getHeight();
+
+                                    // r.bottom is the position above soft keypad or device button.
+                                    // if keypad is shown, the r.bottom is smaller than that before.
+                                    int keypadHeight = screenHeight - r.bottom;
+
+                                    if (keypadHeight > screenHeight * 0.15) { // 0.15 ratio is perhaps enough to determine keypad height.
+                                        // keyboard is opened
+                                        if (!isKeyboardShowing) {
+                                            isKeyboardShowing = true;
+
+
+                                        }
+                                    }
+                                    else {
+                                        // keyboard is closed
+                                        if (isKeyboardShowing) {
+                                            isKeyboardShowing = false;
+                                            testAdapter.notifyDataSetChanged();
+                                            Log.i("chckCmmntLstKyBard","L");
+                                            if(last_reading_pos>0)
+                                            {
+
+                                                Log.i("chckCmmntLstKyBard","L last_reading_pos="+last_reading_pos);
+                                                final int jk=last_reading_pos;
+                                                comment_list.scrollToPosition(jk);
+                                                comment_list.postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        comment_list.smoothScrollToPosition(jk);
+                                                        Log.i("keyposa","last_reading_pos="+jk);
+
+                                                    }
+                                                },1000);
+                                            }
+                                        }
+                                    }
+
+                                }
+                            });
+
+                    comment_list.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                        @Override
+                        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                            super.onScrollStateChanged(recyclerView, newState);
+
+                            if(newState==RecyclerView.SCROLL_STATE_IDLE)
+                            {
+                                last_reading_pos=getLastVisibleItem(comment_list);
+                            }
+
+                        }
+                    });
+                }
+            }
+
+        }
+        catch(Exception exception)
+        {
+            Log.i("chckCmmntLstKyBard","e="+exception.getMessage());
+        }
+    }
 
     //The Activity
     @Override
@@ -641,6 +753,14 @@ public class TestGroup2 extends AppCompatActivity {
         label.setText("Kevin Samuels’ death result of hypertension");
 
     }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+    }
+
+
 
 
 
