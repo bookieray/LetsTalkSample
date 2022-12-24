@@ -72,10 +72,18 @@ public class TestGroup2 extends AppCompatActivity {
     @BindView(R.id.label)
     ExpandableTextView label;
 
-    @BindView(R.id.comment_list)
-    RecyclerView comment_list;
+    //Creating a comment
+    @BindView(R.id.disable_typing_area)
+    FrameLayout disable_typing_area;
+    @BindView(R.id.disable_typing_area_label)
+    TextView disable_typing_area_label;
+    @BindView(R.id.typing_area)
+    LinearLayout typing_area;
+
+    //Viewing the comments - Head Comment
     //The head comment vaiables
     ArrayList<Comment> headcommentArrayList=new ArrayList<Comment>();
+    Comment headcomment=null;
     //The head comment views
     //The head comment parent view that holds all the views to display
     @BindView(R.id.head_comment_convo)
@@ -88,269 +96,13 @@ public class TestGroup2 extends AppCompatActivity {
     RelativeLayout comment_view;
     @BindView(R.id.comment)
     ExpandableTextView comment;
-    //The head comments navigation views
-    @BindView(R.id.marker_filter_area)
-    RelativeLayout marker_filter_area;
-    @BindView(R.id.np_headcommment)
-    FloatingActionButton np_headcommment;
-    @BindView(R.id.prev_headcommment)
-    FloatingActionButton prev_headcomment;
-    //The head comment onclick events
-    @OnClick(R.id.np_headcommment)
-    void NextPrevHeadComment()
-    {
-
-        if(busy)
-        {
-            Toast.makeText(this, "Busy loading comments, please wait", Toast.LENGTH_SHORT).show();
-        }
-        else if(headcommentArrayList.size()>1&selected_headcomment_position+1<headcommentArrayList.size())
-        {
-
-
-            np_headcommment.setImageResource(R.drawable.baseline_keyboard_arrow_right_purple_700_24dp);
-            selected_headcomment_position++;
-
-            Comment commentx=headcommentArrayList.get(selected_headcomment_position);
-            showHeadCommentx(commentx);
-            if(selected_headcomment_position+1>=headcommentArrayList.size())
-            {
-                next_headcomment_area.setVisibility(View.GONE);
-            }
-            if(lujk.containsKey(commentx.getComment_id())==false)
-            {
-                if(selected_headcomment_position>last_known_pos)
-                {
-                    last_known_pos=selected_headcomment_position;
-                    num_views_headcomments++;
-                }
-                int y=headcommentArrayList.size()-num_views_headcomments;
-                if(y>0)
-                {
-
-                    badge.setText(NumUtils.getAbbreviatedNum(y));
-                }
-                else
-                {
-                    badge.setNumber(y);
-                }
-                lujk.put(commentx.getComment_id(),num_views_headcomments);
-            }
-            else if(badge.getTextView().getText().toString().trim().equals("0")==false)
-            {
-                //remove later for testing
-                if(selected_headcomment_position>last_known_pos)
-                {
-                    last_known_pos=selected_headcomment_position;
-                    num_views_headcomments++;
-                }
-
-                int y=headcommentArrayList.size()-num_views_headcomments;
-                if(y>0)
-                {
-
-                    badge.setText(NumUtils.getAbbreviatedNum(y));
-                }
-                else
-                {
-                    badge.setNumber(y);
-                }
-                lujk.put(commentx.getComment_id(),num_views_headcomments);
-            }
-
-            if(selected_headcomment_position>=headcommentArrayList.size()-4&started_after_scroll==false&no_more_headcomments==false)
-            {
-
-                started_after_scroll=true;
-                LoadHeadComments();
-
-            }
-
-            int how_many_comments_before=selected_headcomment_position-0;
-            if(selected_headcomment_position>0)
-            {
-                prev_headcomment_area.setVisibility(View.VISIBLE);
-                badge_prev.setNumber(how_many_comments_before);
-
-            }
-            else
-            {
-                prev_headcomment_area.setVisibility(View.GONE);
-            }
-
-            Log.i("lsjhdfks","selected_headcomment_position="+selected_headcomment_position+" how_many_comments_before="+how_many_comments_before);
-
-        }
-        else
-        {
-            next_headcomment_area.setVisibility(View.GONE);
-        }
-
-    }
-    @OnClick(R.id.prev_headcommment)
-    void PrevHeadComment()
-    {
-
-
-        if(selected_headcomment_position>0)
-        {
-
-
-            selected_headcomment_position--;
-            Comment commentx=headcommentArrayList.get(selected_headcomment_position);
-            showHeadCommentx(commentx);
-            int how_many_comments_before=selected_headcomment_position-0;
-            badge_prev.setNumber(how_many_comments_before);
-            if(how_many_comments_before==0)
-            {
-                prev_headcomment_area.setVisibility(View.GONE);
-                np_headcommment.setImageResource(R.drawable.baseline_keyboard_arrow_right_purple_700_24dp);
-            }
-
-
-        }
-
-        if(headcommentArrayList.size()>1&selected_headcomment_position+1<headcommentArrayList.size())
-        {
-            next_headcomment_area.setVisibility(View.VISIBLE);
-        }
-
-    }
-    //Creating a comment
-    @BindView(R.id.typing_area)
-    LinearLayout typing_area;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test_group2);
-
-        ButterKnife.bind(this);
-        //setUpViewPager();
-
-        marker_filter_area.setVisibility(View.VISIBLE);
-
-        LoadHeadComments();
-
-        label.setText("Kevin Samuels’ death result of hypertension");
-
-    }
-    int selected_headcomment_position=0;
-    private void LoadHeadComments()
-    {
-
-        //add a agree item
-
-        Query query= CloudWorker.getLetsTalkComments()
-                .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
-                .whereEqualTo(OrgFields.IS_NEW_TOPIC,true)
-                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING)
-                .orderBy(OrgFields.NUM_COMMENTS,Query.Direction.DESCENDING);
-
-        if(headcommentArrayList.size()>0)
-        {
-            Comment lastcomment=headcommentArrayList.get(headcommentArrayList.size()-1);
-            query= CloudWorker.getLetsTalkComments()
-                    .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
-                    .whereEqualTo(OrgFields.IS_NEW_TOPIC,true)
-                    .whereGreaterThan(OrgFields.USER_CREATED_DATE,lastcomment.getCreatedDate())
-                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING)
-                    .orderBy(OrgFields.NUM_COMMENTS,Query.Direction.DESCENDING);
-        }
-
-        query.limit(10).get()
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                        started_after_scroll=false;
-                        Log.i("LoadHeadComments","e="+e.getMessage());
-
-                    }
-                })
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                        started_after_scroll=false;
-                        Log.i("LoadHeadComments","queryDocumentSnapshots.isEmpty="+(queryDocumentSnapshots.isEmpty())
-                                +" queryDocumentSnapshots.size="+queryDocumentSnapshots.size());
-
-                        if(queryDocumentSnapshots.isEmpty()==false)
-                        {
-
-                            DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(0);
-                            Comment commentx=new Comment(documentSnapshot);
-                            headcommentArrayList.add(commentx);
-                            if(headcomment==null)
-                            {
-                                showHeadCommentx(commentx);
-                            }
-                            //setUpViewPager();
-
-                            //selected_headcomment_position=0;
-
-                            for(int i=0;i<queryDocumentSnapshots.size();i++)
-                            {
-                                DocumentSnapshot documentSnapshotxx=queryDocumentSnapshots.getDocuments().get(i);
-                                Comment commentxx=new Comment(documentSnapshotxx);
-                                commentxx.setComment_type(Comment.DISAGREES);
-                                commentxx.setComment("2");
-
-                                Comment commentxx1=new Comment(documentSnapshotxx);
-                                commentxx1.setComment_type(Comment.QUESTION);
-                                commentxx1.setComment("3");
-
-                                Comment commentxx2=new Comment(documentSnapshotxx);
-                                commentxx2.setComment_type(Comment.ANSWER);
-                                commentxx2.setComment("4");
-
-                                headcommentArrayList.add(commentxx);
-                                headcommentArrayList.add(commentxx1);
-                                headcommentArrayList.add(commentxx2);
-                            }
-
-
-
-                        }
-                        else
-                        {
-                            no_more_headcomments=true;
-                            Log.i("LoadHeadComments","no_more_headcomments="+no_more_headcomments);
-
-                        }
-
-                        if(headcommentArrayList.size()>1)
-                        {
-
-                            if(num_views_headcomments==0)
-                            {
-                                num_views_headcomments++;
-                            }
-                            badge.setText(NumUtils.getAbbreviatedNum(headcommentArrayList.size()-num_views_headcomments));
-                            next_headcomment_area.setVisibility(View.VISIBLE);
-
-                        }
-
-
-                    }
-                });
-
-
-    }
-
-
-    @BindView(R.id.disable_typing_area)
-    FrameLayout disable_typing_area;
-    @BindView(R.id.disable_typing_area_label)
-    TextView disable_typing_area_label;
     @BindView(R.id.time_sent)
     TextView time_sent;
     @BindView(R.id.num_people_read)
     TextView num_people_read;
     @BindView(R.id.hjk)
     EmojiconTextView hjk;
-
+    //The head comments navigation views
     @BindView(R.id.prev_headcomment_area)
     FrameLayout prev_headcomment_area;
     @BindView(R.id.badge_prev)
@@ -359,7 +111,14 @@ public class TestGroup2 extends AppCompatActivity {
     FrameLayout next_headcomment_area;
     @BindView(R.id.headcomment_index)
     NotificationBadge headcomment_index;
-    Comment headcomment=null;
+    @BindView(R.id.np_headcommment)
+    FloatingActionButton np_headcommment;
+    @BindView(R.id.prev_headcommment)
+    FloatingActionButton prev_headcomment;
+    @BindView(R.id.badge)
+    NotificationBadge badge;
+    //The methods for head comments
+    //viewing a head comment
     private void showHeadCommentx(Comment commentx)
     {
 
@@ -535,20 +294,248 @@ public class TestGroup2 extends AppCompatActivity {
 
 
     }
-
-
+    //The head comment onclick events
+    //variables for navigating the head comments
+    int selected_headcomment_position=0;
     int num_views_headcomments=0;
-    boolean rev=false;
+    HashMap<String,Integer> lujk=new HashMap<String,Integer>();
+    int last_known_pos=0;
+    @OnClick(R.id.np_headcommment)
+    void NextPrevHeadComment()
+    {
+
+        if(busy)
+        {
+            Toast.makeText(this, "Busy loading comments, please wait", Toast.LENGTH_SHORT).show();
+        }
+        else if(headcommentArrayList.size()>1&selected_headcomment_position+1<headcommentArrayList.size())
+        {
+
+
+            np_headcommment.setImageResource(R.drawable.baseline_keyboard_arrow_right_purple_700_24dp);
+            selected_headcomment_position++;
+
+            Comment commentx=headcommentArrayList.get(selected_headcomment_position);
+            showHeadCommentx(commentx);
+            if(selected_headcomment_position+1>=headcommentArrayList.size())
+            {
+                next_headcomment_area.setVisibility(View.GONE);
+            }
+            if(lujk.containsKey(commentx.getComment_id())==false)
+            {
+                if(selected_headcomment_position>last_known_pos)
+                {
+                    last_known_pos=selected_headcomment_position;
+                    num_views_headcomments++;
+                }
+                int y=headcommentArrayList.size()-num_views_headcomments;
+                if(y>0)
+                {
+
+                    badge.setText(NumUtils.getAbbreviatedNum(y));
+                }
+                else
+                {
+                    badge.setNumber(y);
+                }
+                lujk.put(commentx.getComment_id(),num_views_headcomments);
+            }
+            else if(badge.getTextView().getText().toString().trim().equals("0")==false)
+            {
+                //remove later for testing
+                if(selected_headcomment_position>last_known_pos)
+                {
+                    last_known_pos=selected_headcomment_position;
+                    num_views_headcomments++;
+                }
+
+                int y=headcommentArrayList.size()-num_views_headcomments;
+                if(y>0)
+                {
+
+                    badge.setText(NumUtils.getAbbreviatedNum(y));
+                }
+                else
+                {
+                    badge.setNumber(y);
+                }
+                lujk.put(commentx.getComment_id(),num_views_headcomments);
+            }
+
+            if(selected_headcomment_position>=headcommentArrayList.size()-4&started_after_scroll==false&no_more_headcomments==false)
+            {
+
+                started_after_scroll=true;
+                LoadHeadComments();
+
+            }
+
+            int how_many_comments_before=selected_headcomment_position-0;
+            if(selected_headcomment_position>0)
+            {
+                prev_headcomment_area.setVisibility(View.VISIBLE);
+                badge_prev.setNumber(how_many_comments_before);
+
+            }
+            else
+            {
+                prev_headcomment_area.setVisibility(View.GONE);
+            }
+
+            Log.i("lsjhdfks","selected_headcomment_position="+selected_headcomment_position+" how_many_comments_before="+how_many_comments_before);
+
+        }
+        else
+        {
+            next_headcomment_area.setVisibility(View.GONE);
+        }
+
+    }
+    @OnClick(R.id.prev_headcommment)
+    void PrevHeadComment()
+    {
+
+
+        if(selected_headcomment_position>0)
+        {
+
+
+            selected_headcomment_position--;
+            Comment commentx=headcommentArrayList.get(selected_headcomment_position);
+            showHeadCommentx(commentx);
+            int how_many_comments_before=selected_headcomment_position-0;
+            badge_prev.setNumber(how_many_comments_before);
+            if(how_many_comments_before==0)
+            {
+                prev_headcomment_area.setVisibility(View.GONE);
+                np_headcommment.setImageResource(R.drawable.baseline_keyboard_arrow_right_purple_700_24dp);
+            }
+
+
+        }
+
+        if(headcommentArrayList.size()>1&selected_headcomment_position+1<headcommentArrayList.size())
+        {
+            next_headcomment_area.setVisibility(View.VISIBLE);
+        }
+
+    }
+    //methods for loading Head Comments
+    private void LoadHeadComments()
+    {
+
+        //add a agree item
+
+        Query query= CloudWorker.getLetsTalkComments()
+                .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
+                .whereEqualTo(OrgFields.IS_NEW_TOPIC,true)
+                .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING)
+                .orderBy(OrgFields.NUM_COMMENTS,Query.Direction.DESCENDING);
+
+        if(headcommentArrayList.size()>0)
+        {
+            Comment lastcomment=headcommentArrayList.get(headcommentArrayList.size()-1);
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
+                    .whereEqualTo(OrgFields.IS_NEW_TOPIC,true)
+                    .whereGreaterThan(OrgFields.USER_CREATED_DATE,lastcomment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING)
+                    .orderBy(OrgFields.NUM_COMMENTS,Query.Direction.DESCENDING);
+        }
+
+        query.limit(10).get()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                        started_after_scroll=false;
+                        Log.i("LoadHeadComments","e="+e.getMessage());
+
+                    }
+                })
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        started_after_scroll=false;
+                        Log.i("LoadHeadComments","queryDocumentSnapshots.isEmpty="+(queryDocumentSnapshots.isEmpty())
+                                +" queryDocumentSnapshots.size="+queryDocumentSnapshots.size());
+
+                        if(queryDocumentSnapshots.isEmpty()==false)
+                        {
+
+                            DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(0);
+                            Comment commentx=new Comment(documentSnapshot);
+                            headcommentArrayList.add(commentx);
+                            if(headcomment==null)
+                            {
+                                showHeadCommentx(commentx);
+                            }
+                            //setUpViewPager();
+
+                            //selected_headcomment_position=0;
+
+                            for(int i=0;i<queryDocumentSnapshots.size();i++)
+                            {
+                                DocumentSnapshot documentSnapshotxx=queryDocumentSnapshots.getDocuments().get(i);
+                                Comment commentxx=new Comment(documentSnapshotxx);
+                                commentxx.setComment_type(Comment.DISAGREES);
+                                commentxx.setComment("2");
+
+                                Comment commentxx1=new Comment(documentSnapshotxx);
+                                commentxx1.setComment_type(Comment.QUESTION);
+                                commentxx1.setComment("3");
+
+                                Comment commentxx2=new Comment(documentSnapshotxx);
+                                commentxx2.setComment_type(Comment.ANSWER);
+                                commentxx2.setComment("4");
+
+                                headcommentArrayList.add(commentxx);
+                                headcommentArrayList.add(commentxx1);
+                                headcommentArrayList.add(commentxx2);
+                            }
+
+
+
+                        }
+                        else
+                        {
+                            no_more_headcomments=true;
+                            Log.i("LoadHeadComments","no_more_headcomments="+no_more_headcomments);
+
+                        }
+
+                        if(headcommentArrayList.size()>1)
+                        {
+
+                            if(num_views_headcomments==0)
+                            {
+                                num_views_headcomments++;
+                            }
+                            badge.setText(NumUtils.getAbbreviatedNum(headcommentArrayList.size()-num_views_headcomments));
+                            next_headcomment_area.setVisibility(View.VISIBLE);
+
+                        }
+
+
+                    }
+                });
+
+
+    }
+
+    //Viewing the comments - Comments under the Head Comment
+    //The views for viewing the comments
+    @BindView(R.id.marker_filter_area)
+    RelativeLayout marker_filter_area;
+    @BindView(R.id.comment_list)
+    RecyclerView comment_list;
+    //methods for loading comments under head comment
+    //variables for getting comments under head comment
     boolean busy=false;
     boolean no_more_headcomments=false;
     boolean started_after_scroll=false;
-    HashMap<String,Integer> lujk=new HashMap<String,Integer>();
-    int last_known_pos=0;
-
-
     private TestAdapter testAdapter;
-    @BindView(R.id.badge)
-    NotificationBadge badge;
     private void getComments(Comment headcommment)
     {
 
@@ -637,6 +624,25 @@ public class TestGroup2 extends AppCompatActivity {
                 });
 
     }
+
+    //The Activity
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test_group2);
+
+        ButterKnife.bind(this);
+        //setUpViewPager();
+
+        marker_filter_area.setVisibility(View.VISIBLE);
+
+        LoadHeadComments();
+
+        label.setText("Kevin Samuels’ death result of hypertension");
+
+    }
+
+
 
 
 }
