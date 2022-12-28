@@ -29,7 +29,8 @@ public class Comment
     public static final int DISAGREES=1;
     public static final int QUESTION=2;
     public static final int QOUTE=3;
-    public static final int ANSWER=3;
+    public static final int ANSWER=4;
+    public static final int NEWS_AD=5;
     //The type of comment
     private int comment_type=AGREES;
     //The comment
@@ -1215,24 +1216,67 @@ public class Comment
     public String getTimeStr()
     {
 
-        android.text.format.DateFormat df =
-                new android.text.format.DateFormat();
-        String outputx1=df.format("hh:mm:ss a",
-                        this.getCreatedDate())
-                .toString();
-        return outputx1;
+        if(this.getCreatedDate()!=null)
+        {
+            android.text.format.DateFormat df =
+                    new android.text.format.DateFormat();
+            String outputx1=df.format("hh:mm:ss a",
+                            this.getCreatedDate())
+                    .toString();
+            return outputx1;
+        }
+        else
+        {
+            return "";
+        }
     }
     public String getDateStr()
     {
 
-        android.text.format.DateFormat df =
-                new android.text.format.DateFormat();
-        String outputx1=df.format("LLL dd,E yyyy",
-                        this.getCreatedDate())
-                .toString();
-        return outputx1;
+        if(this.getCreatedDate()!=null)
+        {
+            android.text.format.DateFormat df =
+                    new android.text.format.DateFormat();
+            String outputx1=df.format("LLL dd,E yyyy",
+                            this.getCreatedDate())
+                    .toString();
+            return outputx1;
+        }
+        else
+        {
+            return "";
+        }
     }
 
+    private boolean isItAd=false;
+
+    public boolean isItAd() {
+        return isItAd;
+    }
+
+    public void setItAd(boolean itAd) {
+        isItAd = itAd;
+    }
+
+    private int showAdIndex=0;
+
+    public int getShowAdIndex() {
+        return showAdIndex;
+    }
+
+    public void setShowAdIndex(int showAdIndex) {
+        this.showAdIndex = showAdIndex;
+    }
+
+    private int adapter_position=0;
+
+    public int getAdapter_position() {
+        return adapter_position;
+    }
+
+    public void setAdapter_position(int adapter_position) {
+        this.adapter_position = adapter_position;
+    }
 
 
 }

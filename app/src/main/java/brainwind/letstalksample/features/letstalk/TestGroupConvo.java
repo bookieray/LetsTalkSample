@@ -34,7 +34,7 @@ public class TestGroupConvo extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test_group_convo);
         ButterKnife.bind(this);
-        testAdapter=new TestAdapter();
+        testAdapter=new TestAdapter(this);
         comment_list.setLayoutManager(new LinearLayoutManager(this));
         comment_list.setAdapter(testAdapter);
 

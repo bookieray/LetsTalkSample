@@ -8,6 +8,7 @@
     android:id="@+id/head_comment_convo"
     >
 
+
     <include
         android:id="@+id/headcomment_list"
         layout="@layout/headcomment_topic_item"
@@ -16,7 +17,8 @@
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="8dp"
-        android:layout_marginBottom="2dp"/>
+        android:layout_marginBottom="2dp"
+        />
 
     <FrameLayout
         android:id="@+id/prev_headcomment_area"
@@ -36,18 +38,6 @@
             app:backgroundTint="@color/glass2"
             android:layout_alignParentRight="true"/>
 
-        <com.nex3z.notificationbadge.NotificationBadge
-            android:id="@+id/badge_prev"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_toRightOf="@id/np_headcommment"
-            android:layout_alignTop="@id/np_headcommment"
-            android:layout_marginLeft="22dp"
-            android:layout_marginTop="-3dp"
-            app:nbBackground="@drawable/badge_bg_with_shadow"
-            app:nbMaxTextLength="2"
-            android:elevation="7dp"
-            />
 
     </FrameLayout>
 

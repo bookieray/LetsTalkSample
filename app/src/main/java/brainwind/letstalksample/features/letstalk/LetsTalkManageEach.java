@@ -214,7 +214,8 @@ public class LetsTalkManageEach extends AppCompatActivity
         Log.i("and_life_cycle","onCreate estimatedServerTimeMs="
                 +estimatedServerTimeMs);
 
-        Intent intent=new Intent(this,TestGroupConvo.class);
+        Intent intent=new Intent(this,TestGroup2.class);
+        intent.putExtras(getIntent());
         startActivity(intent);
 
     }

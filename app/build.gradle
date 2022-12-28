@@ -147,6 +147,9 @@ dependencies {
     implementation "com.arthurivanets.bottomsheet:bottomsheets-core:1.0.0"
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
 
+    implementation 'com.google.android.gms:play-services-ads:21.4.0'
+    implementation 'com.github.FireZenk:BubbleEmitter:-SNAPSHOT'
+
 
 
 }

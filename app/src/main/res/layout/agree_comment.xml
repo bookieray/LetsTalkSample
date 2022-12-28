@@ -32,7 +32,6 @@
             />
 
 
-
         <RelativeLayout
             android:id="@+id/comment_view"
             android:layout_width="wrap_content"
@@ -41,11 +40,7 @@
             android:layout_alignParentLeft="true"
             android:padding="7dp"
             android:layout_below="@+id/loading_prev_comments"
-
             >
-
-
-
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -160,7 +155,10 @@
             </LinearLayout>
 
 
+
+
         </RelativeLayout>
+
 
         <TextView
             android:id="@+id/part_of_day"

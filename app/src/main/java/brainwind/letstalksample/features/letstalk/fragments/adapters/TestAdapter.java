@@ -1,15 +1,27 @@
 package brainwind.letstalksample.features.letstalk.fragments.adapters;
 
+import static android.view.View.GONE;
+import static com.google.android.gms.ads.nativead.NativeAdOptions.ADCHOICES_BOTTOM_LEFT;
+import static com.google.android.gms.ads.nativead.NativeAdOptions.ADCHOICES_BOTTOM_RIGHT;
+
+import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.net.Uri;
+import android.os.CountDownTimer;
+import android.provider.Settings;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -18,16 +30,33 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.google.android.exoplayer2.util.Log;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdOptions;
+import com.google.android.gms.ads.nativead.NativeAdView;
+import com.skyfishjy.library.RippleBackground;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import brainwind.letstalksample.CommentListener;
 import brainwind.letstalksample.R;
 import brainwind.letstalksample.data.database.OrgFields;
 import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.TimeUtilities;
+import brainwind.letstalksample.features.letstalk.CommentTimeStampNavigation;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
+import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconTextView;
 
 public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
@@ -67,6 +96,13 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
     public HashMap<String, String> markers=new HashMap<String,String>();
     public HashMap<String, String> markersx=new HashMap<String,String>();
     public HashMap<Integer, String> markers_positions=new HashMap<Integer,String>();
+    public HashMap<Integer, String> news_positions=new HashMap<Integer,String>();
+
+    private Activity activity;
+
+    public TestAdapter(Activity activity) {
+        this.activity = activity;
+    }
 
     @NonNull
     @Override
@@ -74,6 +110,12 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         if(viewType==-1)
         {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.loading_list
+                    , parent, false);
+            return new TestHolder(view);
+        }
+        else if(viewType==Comment.NEWS_AD)
+        {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.ad_news
                     , parent, false);
             return new TestHolder(view);
         }
@@ -102,63 +144,455 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         }
     }
 
+
+    int numshowads=0;
+    int shownadindex=0;
     @Override
     public void onBindViewHolder(@NonNull TestHolder holder, int position) {
 
-        if(getItemViewType(position)!=-1) {
-            Comment comment = commentListUnderHeadComment.get(position);
-            decideIfTimeStamp(comment, position);
-            if(comment.getComment().isEmpty())
-            {
-                holder.comment_view.setVisibility(View.GONE);
-            }
-            else
-            {
-                holder.comment_view.setVisibility(View.VISIBLE);
-                holder.comment.setText(comment.getComment());
-            }
-            if(comment.isIs_timestamp())
-            {
-                holder.timestamp_area.setVisibility(View.VISIBLE);
-            }
-            else
-            {
-                holder.timestamp_area.setVisibility(View.GONE);
-            }
-            holder.loading_next_comments.setVisibility(View.GONE);
-            holder.loading_prev_comments.setVisibility(View.GONE);
-            holder.summary_area.setVisibility(View.GONE);
-            holder.view_older.setVisibility(View.GONE);
-            //holder.comment.setText(comment.getComment());
+        int list_position=position;
 
-            /*if(comment.isSent()||position<last_known_pos)
-            {
-                comment.setSent(true);
-                commentListUnderHeadComment.set(position,comment);
+        if(list_position<commentListUnderHeadComment.size())
+        {
 
-                Glide.with(holder.comment_view.getContext())
-                        .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_24))
-                        .into(holder.sent_status);
+            Comment comment = commentListUnderHeadComment.get(list_position);
+            comment.setAdapter_position(position);
+            commentListUnderHeadComment.set(position,comment);
+            if(getItemViewType(position)>-1&getItemViewType(position)!=Comment.NEWS_AD) {
 
-                if(comment.getNumOFCommentsRead()>0)
+
+                if(comment.getComment_type()!=Comment.NEWS_AD)
                 {
-                    Glide.with(holder.comment_view.getContext())
-                            .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_all_24))
-                            .into(holder.sent_status);
+
+                    decideIfTimeStamp(comment, list_position);
+                    holder.timestamp_stance.setVisibility(GONE);
+                    holder.loading_next_comments.setVisibility(View.GONE);
+                    holder.loading_prev_comments.setVisibility(View.GONE);
+                    holder.summary_area.setVisibility(View.GONE);
+                    holder.view_older.setVisibility(View.GONE);
+
+                    //display the timestamp,deciding and if so displaying the view_holder or summary area
+                    if(comment.isIs_timestamp())
+                    {
+                        holder.timestamp_area.setVisibility(View.VISIBLE);
+                        holder.animationView.setVisibility(GONE);
+                        holder.timestamp_area.setVisibility(View.VISIBLE);
+                        holder.view_older.setVisibility(GONE);
+                        holder.summary_area.setVisibility(GONE);
+                        //show the timestamp label
+                        String timestamp_label=getTimestamp(comment,holder.timestamp_area.getContext());
+                        holder.timestamp_label.setText(timestamp_label);
+                        holder.timestamp_label.setVisibility(View.VISIBLE);
+
+                        //deciding to show view older area
+                        if(timestamps_comments.containsKey(comment.getTimestamp())==false)
+                        {
+
+                            Comment lastt=commentListUnderHeadComment.get(commentListUnderHeadComment.size()-1);
+                            Log.i("fsdhgshd",comment.getTimestamp()+" "+(no_more_comments_previous.containsKey(comment.getTimestamp()))
+                                    +" "+(comment.getTimestamp().equals(lastt.getTimestamp()))
+                                    +" "+(comment.getTimestamp().isEmpty()));
+
+                            if(no_more_comments_previous.containsKey(comment.getTimestamp())==false
+                                    &started_loading_older_coments.containsKey(comment.getTimestamp()))
+                            {
+                                Log.i("fsdhgshd","s1 "+comment.getTimestamp()+" "+getItemViewType(position));
+                                holder.view_older.setVisibility(View.GONE);
+                                holder.loading_prev_comments.setVisibility(View.VISIBLE);
+                            }
+                            else if(no_more_comments_previous.containsKey(comment.getTimestamp())==false
+                                    &comment.getTimestamp().equals(lastt.getTimestamp())
+                                    &comment.getTimestamp().isEmpty()==false)
+                            {
+
+
+                                Log.i("fsdhgshd","s2 "+comment.getTimestamp()+" "+getItemViewType(position));
+                                holder.view_older.setVisibility(View.VISIBLE);
+                                holder.loading_prev_comments.setVisibility(View.GONE);
+
+                            }
+                            else if(no_more_comments_previous.containsKey(comment.getTimestamp()))
+                            {
+                                holder.view_older.setVisibility(View.VISIBLE);
+                                holder.loading_prev_comments.setVisibility(GONE);
+                                holder.view_older_txt.setText("No more Previous Comments");
+                                holder.view_older_txt.setTextColor(holder.view_older_txt.getResources().getColor(R.color.black));
+                                holder.view_older_txt.setAnimation(null);
+                            }
+
+                        }
+                        else
+                        {
+
+                            holder.view_older.setVisibility(View.VISIBLE);
+                            if(started_loading_older_coments.containsKey(comment.getTimestamp()))
+                            {
+                                holder.loading_prev_comments.setVisibility(View.VISIBLE);
+                            }
+                            else if(started_loading_older_coments.containsKey(comment.getTimestamp())==false
+                                    &no_more_comments_previous.containsKey(comment.getTimestamp()))
+                            {
+                                holder.view_older.setVisibility(View.VISIBLE);
+                                holder.loading_prev_comments.setVisibility(GONE);
+                                holder.view_older_txt.setText("No more Previous Comments");
+                                holder.view_older_txt.setTextColor(holder.view_older_txt.getResources().getColor(R.color.black));
+                                holder.view_older_txt.setAnimation(null);
+                            }
+                            else
+                            {
+                                holder.loading_prev_comments.setVisibility(GONE);
+                            }
+
+
+                        }
+
+                        //deciding to show summary area
+
+
+
+                    }
+                    else
+                    {
+                        holder.timestamp_area.setVisibility(GONE);
+                    }
+
+                    if(comment.getComment().isEmpty())
+                    {
+                        holder.comment_view.setVisibility(View.GONE);
+                    }
+                    else
+                    {
+                        holder.comment_view.setVisibility(View.VISIBLE);
+                        holder.comment.setText(comment.getComment());
+                    }
+
+                    holder.comment.setText(comment.getComment());
+
+                    if(comment.isSent()||position<last_known_pos)
+                    {
+                        comment.setSent(true);
+                        commentListUnderHeadComment.set(position,comment);
+
+                        Glide.with(holder.comment_view.getContext())
+                                .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_24))
+                                .into(holder.sent_status);
+
+                        if(comment.getNumOFCommentsRead()>0)
+                        {
+                            Glide.with(holder.comment_view.getContext())
+                                    .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_done_all_24))
+                                    .into(holder.sent_status);
+                        }
+
+
+                    }
+                    else
+                    {
+                        Glide.with(holder.comment_view.getContext())
+                                .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_access_time_24))
+                                .into(holder.sent_status);
+                    }
+
+                    if(holder.view_older.getVisibility()==View.VISIBLE&no_more_comments_previous.containsKey(comment.getTimestamp())==false)
+                    {
+                        setUpViewOlder(holder,position);
+                    }
+
+                    //displaying the time sent
+                    holder.time_sent.setText(comment.getTimeStr());
+
+                    //display the comment type
+                    if(comment.getComment_type()==Comment.AGREES)
+                    {
+                        holder.comment_type.setText("Agrees");
+
+
+                    }
+                    if(comment.getComment_type()==Comment.DISAGREES)
+                    {
+                        holder.comment_type.setText("Disagrees");
+                    }
+                    if(comment.getComment_type()==Comment.QUESTION)
+                    {
+                        holder.comment_type.setText("Question");
+                    }
+                    if(comment.getComment_type()==Comment.ANSWER)
+                    {
+                        holder.comment_type.setText("Answer");
+                    }
+
+
                 }
 
 
-            }
-            else
-            {
-                Glide.with(holder.comment_view.getContext())
-                        .load(holder.comment_view.getContext().getDrawable(R.drawable.ic_baseline_access_time_24))
-                        .into(holder.sent_status);
-            }
 
+
+
+            }
+            else if(getItemViewType(position)==Comment.NEWS_AD)
+            {
+
+            /*
+                    //news views
+                ImageView news_bookie_logo;
+                TextView mediatype1;
+                TextView news_title;
+                TextView lead_label;
              */
+                Log.i("getNewsSuggestions","onBindViewHolder position="+position
+                        +" newsFactsMediaArrayList.size()="+newsFactsMediaArrayList.size());
+
+                if(comment.isItAd()&nativeAdArrayList.size()>0)
+                {
+
+                    if(shownadindex<nativeAdArrayList.size())
+                    {
+                        NativeAd nativeAd=nativeAdArrayList.get(shownadindex);
+                        displayNativeAd(holder,nativeAd);
+                        comment.setShowAdIndex(shownadindex);
+                        commentListUnderHeadComment.set(position,comment);
+
+                        if(shownadindex+1<nativeAdArrayList.size())
+                        {
+                            shownadindex++;
+                        }
+                        else
+                        {
+                            shownadindex=0;
+                            nativeAdArrayList.clear();
+                        }
+                    }
+
+
+                }
+                else if(newsFactsMediaArrayList.size()>0)
+                {
+                    NewsFactsMedia newsFactsMedia=newsFactsMediaArrayList.get(laks);
+                    holder.ad_badge.setVisibility(View.GONE);
+                    holder.lead_label.setText("         ");
+                    if(newsFactsMedia!=null)
+                    {
+                        holder.news_bookie_logo.setVisibility(View.VISIBLE);
+                        holder.news_bookie_logo.setImageDrawable(holder.news_bookie_logo.getResources().getDrawable(R.drawable.ic_bookie));
+                        holder.mediatype1.setVisibility(View.VISIBLE);
+                        if(newsFactsMedia.getTitle().trim().length()<=70)
+                        {
+                            if(newsFactsMedia.getTitle().trim().length()==70)
+                            {
+                                holder.news_title.setText(newsFactsMedia.getTitle().trim());
+                            }
+                            else
+                            {
+                                StringBuilder ksld=new StringBuilder();
+                                int kl=70-newsFactsMedia.getTitle().trim().length();
+                                for(int y=0;y<kl;y++)
+                                {
+                                    ksld.append(" ");
+                                }
+                                holder.news_title.setText(newsFactsMedia.getTitle().trim()+ksld);
+                            }
+                        }
+                        else
+                        {
+                            holder.news_title.setText(newsFactsMedia.getTitle().trim().substring(0,67)+"...");
+                        }
+                        if(newsFactsMedia.getSource().isEmpty()==false)
+                        {
+                            holder.mediatype1.setText("News:"+newsFactsMedia.getSource());
+                        }
+                        else
+                        {
+                            holder.mediatype1.setText("News");
+                        }
+                        holder.lead_label.setVisibility(View.VISIBLE);
+                        holder.lead_label.setText("read more");
+                    }
+
+
+
+                    if(laks+1<newsFactsMediaArrayList.size())
+                    {
+                        laks++;
+                    }
+                    else
+                    {
+                        laks=0;
+                    }
+
+                }
+                else
+                {
+
+
+
+                }
+
+            }
 
         }
+
+    }
+
+    private void setUpViewOlder(TestHolder holder, int position)
+    {
+
+        final Comment comment=commentListUnderHeadComment.get(position);
+        final String timestamp=comment.getYear()+"-"+comment.getMonth()
+                +"-"+comment.getDay();
+        if(no_more_comments_previous.containsKey(comment.getTimestamp())==false)
+        {
+            holder.view_older_txt
+                    .startAnimation(AnimationUtils
+                            .loadAnimation(holder
+                                            .view_older_txt
+                                            .getContext()
+                                    , R.anim.pulse));
+        }
+        else
+        {
+
+        }
+
+        holder.view_older.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                if(no_more_comments_previous.containsKey(timestamp))
+                {
+                    Toast.makeText(holder.view_older_txt.getContext()
+                            ,"No More Previous Comments for "+holder.timestamp_label.getText(),
+                            Toast.LENGTH_LONG).show();
+                }
+                else if(started_loading_older_coments.size()>0||currentLoadingTimestampLabel.isEmpty()==false)
+                {
+
+                    Toast.makeText(holder.view_older_txt.getContext()
+                            ,"Loading comments for "+currentLoadingTimestampLabel,
+                            Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+
+                    holder.loading_prev_comments.setVisibility(View.VISIBLE);
+                    holder.view_older.setVisibility(View.INVISIBLE);
+                    if(activity!=null)
+                    {
+
+                        CommentTimeStampNavigation commentTimeStampNavigation=(CommentTimeStampNavigation) activity;
+                        if(commentTimeStampNavigation!=null)
+                        {
+
+                            currentLoadingTimestampLabel=holder.timestamp_label.getText().toString();
+                            commentTimeStampNavigation.getCommentsForTimeStampsPrevTo(comment);
+
+
+                        }
+
+                    }
+
+                }
+
+            }
+        });
+
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull TestHolder holder) {
+        super.onViewAttachedToWindow(holder);
+
+        if(holder.getBindingAdapterPosition()<commentListUnderHeadComment.size())
+        {
+            Comment comment = commentListUnderHeadComment.get(holder.getBindingAdapterPosition());
+            comment.setAdapter_position(holder.getBindingAdapterPosition());
+            commentListUnderHeadComment.set(holder.getBindingAdapterPosition(),comment);
+
+            if(comment.isItAd()==false&comment.isIs_timestamp())
+            {
+
+            }
+
+        }
+
+
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull TestHolder holder) {
+        super.onViewRecycled(holder);
+
+        if(holder.getBindingAdapterPosition()>-1)
+        {
+            if(getItemViewType(holder.getBindingAdapterPosition())==Comment.NEWS_AD)
+            {
+
+                Log.i("onViewRecycled","position="+(holder.getBindingAdapterPosition()));
+                Comment comment=commentListUnderHeadComment.get(holder.getBindingAdapterPosition());
+                int shownindex=comment.getShowAdIndex();
+                if(shownindex<nativeAdArrayList.size())
+                {
+                    NativeAd nativeAd=nativeAdArrayList.get(shownindex);
+                    //nativeAd.destroy();
+                }
+
+            }
+        }
+
+
+    }
+
+    private void displayNativeAd(TestHolder holder, NativeAd nativeAd)
+    {
+
+        holder.ad_badge.setVisibility(View.VISIBLE);
+
+        holder.mediatype1.setTextColor(holder.mediatype1.getResources().getColor(R.color.purple_700));
+        if(nativeAd.getAdvertiser()!=null)
+        {
+            holder.mediatype1.setText(" "+nativeAd.getAdvertiser());
+            holder.adView.setAdvertiserView(holder.mediatype1);
+        }
+        else if(nativeAd.getStore()!=null)
+        {
+            holder.mediatype1.setText(" "+nativeAd.getStore());
+            holder.adView.setStoreView(holder.mediatype1);
+        }
+        if(nativeAd.getHeadline().length()>25)
+        {
+            holder.news_title.setText(nativeAd.getHeadline().substring(0,24)+"...");
+
+        }
+        else
+        {
+            holder.news_title.setText(nativeAd.getHeadline());
+        }
+        holder.adView.setHeadlineView(holder.news_title);
+        holder.adView.setHeadlineView(holder.news_title);
+        if(nativeAd.getIcon()!=null)
+        {
+            holder.news_bookie_logo.setImageDrawable(nativeAd.getIcon().getDrawable());
+            holder.adView.setImageView(holder.news_bookie_logo);
+            holder.adView.setIconView(holder.news_bookie_logo);
+        }
+        else
+        {
+            holder.news_bookie_logo.setVisibility(View.GONE);
+        }
+        if(nativeAd.getCallToAction()!=null)
+        {
+            if(nativeAd.getCallToAction().isEmpty()==false)
+            {
+                holder.lead_label.setVisibility(View.VISIBLE);
+                holder.lead_label.setText(" "+nativeAd.getCallToAction().toLowerCase());
+                holder.adView.setCallToActionView(holder.lead_label);
+            }
+        }
+        // Call the NativeAdView's setNativeAd method to register the
+        // NativeAdObject.
+        holder.adView.setNativeAd(nativeAd);
+
+
 
     }
 
@@ -207,7 +641,12 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         {
 
             Comment prev_comment=this.commentListUnderHeadComment.get(position-1);
-            if(comment.isOnTheSameDay(prev_comment))
+            if(comment.getComment_type()==Comment.NEWS_AD||prev_comment.getComment_type()==Comment.NEWS_AD)
+            {
+                comment.setIs_timestamp(false);
+                this.commentListUnderHeadComment.set(position,comment);
+            }
+            else if(comment.isOnTheSameDay(prev_comment))
             {
                 comment.setIs_timestamp(false);
                 this.commentListUnderHeadComment.set(position,comment);
@@ -219,14 +658,42 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
             }
 
 
-
         }
 
 
     }
 
+    public boolean checkIfLastCommentUnderTimestamp(int position)
+    {
+
+        if(position+1<commentListUnderHeadComment.size())
+        {
+            Comment current_comment=commentListUnderHeadComment.get(position);
+            Comment next_comment=commentListUnderHeadComment.get(position+1);
+            if(current_comment.getTimestamp().equals(next_comment.getTimestamp()))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else if(position==commentListUnderHeadComment.size()-1)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+
+    public static final int AD_NEWS=-99;
     @Override
     public int getItemViewType(int position) {
+
 
         if(is_loading&position==getItemCount()-1)
         {
@@ -236,10 +703,12 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         {
             Comment comment=commentListUnderHeadComment.get(position);
             return comment.getComment_type();
+
         }
 
     }
 
+    public int offset=0;
     @Override
     public int getItemCount() {
         if(is_loading)
@@ -250,6 +719,24 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         {
             return commentListUnderHeadComment.size();
         }
+    }
+
+    public ArrayList<NewsFactsMedia> newsFactsMediaArrayList=new ArrayList<NewsFactsMedia>();
+    int laks=0;
+    public void addNewsAdsList(ArrayList<NewsFactsMedia> newsFactsMediaArrayList)
+    {
+
+        this.newsFactsMediaArrayList.addAll(newsFactsMediaArrayList);
+
+
+    }
+
+    ArrayList<NativeAd> nativeAdArrayList=new ArrayList<NativeAd>();
+    public void addNativeAd(NativeAd nativeAd)
+    {
+
+        nativeAdArrayList.add(nativeAd);
+
     }
 
 
@@ -286,6 +773,14 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         TextView replied_comment_name;
         TextView comment_reply;
         TextView reply_comment_type;
+
+        //news views
+        NativeAdView adView;
+        ImageView ad_badge;
+        ImageView news_bookie_logo;
+        TextView mediatype1;
+        TextView news_title;
+        TextView lead_label;
 
         public TestHolder(@NonNull View itemView) {
             super(itemView);
@@ -341,6 +836,14 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
             replied_comment_name=(TextView) itemView.findViewById(R.id.replied_comment_name);
             comment_reply=(TextView) itemView.findViewById(R.id.comment_reply);
             reply_comment_type=(TextView) itemView.findViewById(R.id.reply_comment_type);
+
+            adView =(NativeAdView)itemView.findViewById(R.id.adView);
+            news_bookie_logo=(ImageView) itemView.findViewById(R.id.news_bookie_logo);
+            ad_badge=(ImageView) itemView.findViewById(R.id.ad_badge);
+            mediatype1=(TextView) itemView.findViewById(R.id.mediatype1);
+            news_title=(TextView) itemView.findViewById(R.id.news_title);
+            lead_label=(TextView) itemView.findViewById(R.id.lead_label);
+
         }
 
 
@@ -358,6 +861,57 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
         Comment timestamp_comment=commentListUnderHeadComment.get(commentListUnderHeadComment.size()-1);
         SignalLoading(timestamp_comment);
 
+    }
+
+    NewsFactsMedia newsFactsMedia;
+    public void showNewsAlerts(NewsFactsMedia newsFactsMedia)
+    {
+
+        this.newsFactsMedia=newsFactsMedia;
+        int offset=getItemCount()-commentListUnderHeadComment.size();
+        if(offset>0)
+        {
+            int news_ad_pos1=getItemCount()-2;
+            notifyItemChanged(news_ad_pos1);
+        }
+
+    }
+
+    public int getOffset()
+    {
+        return getItemCount()-commentListUnderHeadComment.size();
+    }
+
+    public String getDeviceId(Context context){
+        MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+            String androidId =
+                    Settings.Secure.getString((ContentResolver)context.getContentResolver(),Settings.Secure.ANDROID_ID);
+            messageDigest.update(androidId.getBytes());
+            byte[] arrby = messageDigest.digest();
+            StringBuffer sb = new StringBuffer();
+            int n = arrby.length;
+            for(int i=0; i<n; ++i){
+                String oseamiya = Integer.toHexString((int)(255 & arrby[i]));
+                while(oseamiya.length() < 2){
+                    oseamiya = "0" + oseamiya;
+                }
+                sb.append(oseamiya);
+            }
+            String result = sb.toString();
+            return result;
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return "";
+        }
+
+    }
+
+    public int getActualNumberofComments()
+    {
+        return commentListUnderHeadComment.size()-news_positions.size();
     }
 
 }

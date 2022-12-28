@@ -25,5 +25,9 @@
         <item>Academic</item>
         <item>Business</item>
     </string-array>
+    <string-array name="reorder">
+        <item>Most Recent</item>
+        <item>Most Previous</item>
+    </string-array>
 
 </resources>

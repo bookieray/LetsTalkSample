@@ -12,51 +12,98 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.Settings;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.airbnb.lottie.LottieAnimationView;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.avatarfirst.avatargenlib.AvatarGenerator;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 import com.nex3z.notificationbadge.NotificationBadge;
+import com.scwang.wave.MultiWaveHeader;
 
+import org.firezenk.bubbleemitter.BubbleEmitterView;
 import org.joda.time.LocalDateTime;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import brainwind.letstalksample.R;
+import brainwind.letstalksample.bookie_activity.BookieActivity;
 import brainwind.letstalksample.data.database.CloudWorker;
 import brainwind.letstalksample.data.database.OrgFields;
+import brainwind.letstalksample.data.database.user.user_info.UserInfoDatabase;
 import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.NumUtils;
 import brainwind.letstalksample.features.letstalk.fragments.AllTopicsForConvo;
@@ -64,17 +111,220 @@ import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo
 import brainwind.letstalksample.features.letstalk.fragments.NewsMedia;
 import brainwind.letstalksample.features.letstalk.fragments.adapters.TestAdapter;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
+import brainwind.letstalksample.features.letstalk.fragments.item.CommentDate;
+import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
+import brainwind.letstalksample.features.letstalk.fragments.item.TMDay;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconTextView;
 
-public class TestGroup2 extends AppCompatActivity {
+public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNavigation {
 
+    //OPERATIONS
+    public static final int CONVO=0;
+    public static final int HEAD_COMMENT_TIMESTAMPS=1;
+    public static final int HEAD_COMMENT_COMMENTS=2;
+    public static final int HEAD_COMMENTS=3;
+    public int DOWNLOAD_OP=CONVO;
 
     //The conversation title and toolbar
+    @BindView(R.id.waveHeader)
+    MultiWaveHeader waveHeader;
     @BindView(R.id.label)
     ExpandableTextView label;
+    @BindView(R.id.status)
+    TextView status;
+    @BindView(R.id.edit_activity)
+    TextView edit_activity;
+    String conversation_id="";
+    BookieActivity bookieActivity;
+    @BindView(R.id.loading_area)
+    RelativeLayout loading_area;
+    private CountDownTimer countDownTimer;
+
+    private void LoadConvo()
+    {
+
+        DOWNLOAD_OP=CONVO;
+        if(getIntent().hasExtra(OrgFields.CONVERSATION_ID))
+        {
+            conversation_id=getIntent().getStringExtra(OrgFields.CONVERSATION_ID);
+        }
+        else
+        {
+            //test dummy conversation_id
+            conversation_id="S3aNh6Jq7ZajBiJS2jut";
+        }
+
+
+        CloudWorker.getActivities()
+                .document(conversation_id)
+                .get()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                        failedToDownload(e);
+
+                    }
+                })
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                        if(documentSnapshot!=null)
+                        {
+
+                            bookieActivity=new BookieActivity(documentSnapshot);
+                            getNewsSuggestions();
+                            showConvo();
+                            LoadHeadComments();
+                        }
+
+
+                    }
+                });
+
+    }
+
+    MaterialDialog materialDialog;
+    private void failedToDownload(Exception e)
+    {
+
+        String title="";
+        if(DOWNLOAD_OP==CONVO)
+        {
+            title="Error getting convo";
+        }
+        if(DOWNLOAD_OP==HEAD_COMMENT_TIMESTAMPS)
+        {
+            title="Error getting timestamps";
+        }
+        if(DOWNLOAD_OP==HEAD_COMMENTS)
+        {
+            title="Error getting head comments";
+        }
+        if(DOWNLOAD_OP==HEAD_COMMENT_COMMENTS)
+        {
+            title="Error getting comments for head comment";
+        }
+        String content=e.getMessage();
+
+        materialDialog=new MaterialDialog.Builder(this)
+                .title(title)
+                .content(content)
+                .cancelable(false)
+                .positiveText("Internet connection on browser")
+                .negativeText("Try again")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        if(DOWNLOAD_OP==CONVO)
+                        {
+                            LoadConvo();
+                        }
+                        if(DOWNLOAD_OP==HEAD_COMMENT_TIMESTAMPS)
+                        {
+                            getTimestampsForHeadComment(headcomment);
+                        }
+                        if(DOWNLOAD_OP==HEAD_COMMENTS)
+                        {
+                            LoadHeadComments();
+                        }
+                        if(DOWNLOAD_OP==HEAD_COMMENT_COMMENTS)
+                        {
+                            getComments(current_timestamp_comment,current_timestamp_comment.getAdapter_position());
+                        }
+
+                    }
+                })
+                .neutralText("Close Convo")
+                .show();
+
+    }
+
+    private boolean isAdmin=false;
+    private void showConvo()
+    {
+        label.setText(bookieActivity.getActivity_title());
+        if(bookieActivity.isIs_news_reference())
+        {
+            status.setTextColor(getResources().getColor(R.color.green));
+            status.setText(bookieActivity.getNews_source());
+        }
+        else
+        {
+            status.setTextColor(getResources().getColor(R.color.red));
+            status.setVisibility(View.GONE);
+
+        }
+
+        if(bookieActivity.getOrg_main_color().isEmpty()==false)
+        {
+            int backColor=Color.parseColor(bookieActivity.getOrg_main_color());
+            waveHeader.setStartColor(backColor);
+            waveHeader.setCloseColor(backColor);
+        }
+
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null)
+        {
+
+            FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
+            Log.i("showConvo","uid="+firebaseUser.getUid());
+            if(firebaseUser.getUid().trim().equals(bookieActivity.getAdmin_uid()))
+            {
+                edit_activity.setVisibility(View.VISIBLE);
+                isAdmin=true;
+            }
+            else
+            {
+                edit_activity.setVisibility(View.GONE);
+            }
+
+        }
+        else
+        {
+            edit_activity.setVisibility(View.GONE);
+        }
+
+    }
+    //When user taps on the toolbar and top card
+    @OnClick({R.id.uystra,R.id.waveHeader,R.id.topPanel,R.id.toolbar,R.id.label,R.id.activity_type,R.id.edit_activity,R.id.status})
+    void TopCardClicked()
+    {
+        if(bookieActivity!=null)
+        {
+
+            if(bookieActivity.isIs_news_reference()&isAdmin)
+            {
+                new MaterialDialog.Builder(this)
+                        .title("Edit or News Source")
+                        .content(bookieActivity.getActivity_desc()+". Do you want to edit the convo or view news source")
+                        .positiveText("Edit Convo")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            }
+                        })
+                        .negativeText("View News Source")
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            }
+                        })
+                        .show();
+            }
+            else
+            {
+
+            }
+
+        }
+    }
 
     //Creating a comment
     @BindView(R.id.disable_typing_area)
@@ -90,6 +340,8 @@ public class TestGroup2 extends AppCompatActivity {
     Comment headcomment=null;
     //The head comment views
     //The head comment parent view that holds all the views to display
+    @BindView(R.id.headcomment_list_label)
+    TextView headcomment_list_label;
     @BindView(R.id.head_comment_convo)
     RelativeLayout head_comment_convo;
     @BindView(R.id.comment_name)
@@ -109,12 +361,8 @@ public class TestGroup2 extends AppCompatActivity {
     //The head comments navigation views
     @BindView(R.id.prev_headcomment_area)
     FrameLayout prev_headcomment_area;
-    @BindView(R.id.badge_prev)
-    NotificationBadge badge_prev;
     @BindView(R.id.next_headcomment_area)
     FrameLayout next_headcomment_area;
-    @BindView(R.id.headcomment_index)
-    NotificationBadge headcomment_index;
     @BindView(R.id.np_headcommment)
     FloatingActionButton np_headcommment;
     @BindView(R.id.prev_headcommment)
@@ -126,13 +374,26 @@ public class TestGroup2 extends AppCompatActivity {
     private void showHeadCommentx(Comment commentx)
     {
 
-
+        loading_area.setVisibility(View.GONE);
+        comment_filter.setVisibility(View.GONE);
+        tabs.setVisibility(View.GONE);
         headcomment=commentx;
         //RelativeLayout head_comment_rootview=(RelativeLayout) findViewById(R.id.head_comment_rootview);
         comment_name.setText(commentx.getCommentator_name());
         comment.setText(commentx.getComment());
         time_sent.setText(commentx.getTimeStr());
-        num_people_read.setText(NumUtils.getAbbreviatedNum(commentx.getNum_comments())+" comments");
+        if(testAdapter==null)
+        {
+            initiaLizeCommentList();
+        }
+        if(testAdapter.getActualNumberofComments()>commentx.getNum_comments())
+        {
+            num_people_read.setText(NumUtils.getAbbreviatedNum(testAdapter.getActualNumberofComments())+" comments");
+        }
+        else
+        {
+            num_people_read.setText(NumUtils.getAbbreviatedNum(commentx.getNum_comments())+" comments");
+        }
         num_people_read.setVisibility(View.VISIBLE);
         if(commentx.getComment_type()==Comment.AGREES)
         {
@@ -159,17 +420,6 @@ public class TestGroup2 extends AppCompatActivity {
 
             prev_headcomment.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.glass2)));
             prev_headcomment.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.black)));
-
-            Drawable dh2= new AvatarGenerator.AvatarBuilder(TestGroup2.this)
-                    .setLabel("")
-                    .setTextSize(0)
-                    .setAvatarSize(80)
-                    .toCircle()
-                    .setBackgroundColor(getResources().getColor(R.color.purple_700))
-                    .build();
-            headcomment_index.setBadgeBackgroundDrawable(dh2);
-            headcomment_index.setTextColor(getResources().getColor(R.color.white));
-            headcomment_index.setText(NumUtils.getAbbreviatedNum(selected_headcomment_position+1));
 
 
         }
@@ -199,16 +449,6 @@ public class TestGroup2 extends AppCompatActivity {
             prev_headcomment.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.white)));
             prev_headcomment.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.black)));
 
-            Drawable dh2= new AvatarGenerator.AvatarBuilder(TestGroup2.this)
-                    .setLabel("")
-                    .setTextSize(0)
-                    .setAvatarSize(80)
-                    .toCircle()
-                    .setBackgroundColor(getResources().getColor(R.color.white))
-                    .build();
-            headcomment_index.setBadgeBackgroundDrawable(dh2);
-            headcomment_index.setTextColor(getResources().getColor(R.color.purple_700));
-            headcomment_index.setText(NumUtils.getAbbreviatedNum(selected_headcomment_position+1));
 
         }
         if(commentx.getComment_type()==Comment.QUESTION)
@@ -237,16 +477,6 @@ public class TestGroup2 extends AppCompatActivity {
             prev_headcomment.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.glass2)));
             prev_headcomment.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.black)));
 
-            Drawable dh2= new AvatarGenerator.AvatarBuilder(TestGroup2.this)
-                    .setLabel("")
-                    .setTextSize(0)
-                    .setAvatarSize(80)
-                    .toCircle()
-                    .setBackgroundColor(getResources().getColor(R.color.purple_700))
-                    .build();
-            headcomment_index.setBadgeBackgroundDrawable(dh2);
-            headcomment_index.setTextColor(getResources().getColor(R.color.white));
-            headcomment_index.setText(NumUtils.getAbbreviatedNum(selected_headcomment_position+1));
 
         }
         if(commentx.getComment_type()==Comment.ANSWER)
@@ -274,16 +504,6 @@ public class TestGroup2 extends AppCompatActivity {
             prev_headcomment.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.glass2)));
             prev_headcomment.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.black)));
 
-            Drawable dh2= new AvatarGenerator.AvatarBuilder(TestGroup2.this)
-                    .setLabel("")
-                    .setTextSize(0)
-                    .setAvatarSize(80)
-                    .toCircle()
-                    .setBackgroundColor(getResources().getColor(R.color.purple_700))
-                    .build();
-            headcomment_index.setBadgeBackgroundDrawable(dh2);
-            headcomment_index.setTextColor(getResources().getColor(R.color.white));
-            headcomment_index.setText(NumUtils.getAbbreviatedNum(selected_headcomment_position+1));
 
         }
 
@@ -293,11 +513,368 @@ public class TestGroup2 extends AppCompatActivity {
         disable_typing_area.setVisibility(View.VISIBLE);
         disable_typing_area_label.setText("Please wait");
 
-
-        getComments(commentx);
+        HeadCommentIndex();
+        getTimestampsForHeadComment(commentx);
 
 
     }
+
+    @BindView(R.id.comment_filter)
+    Spinner comment_filter;
+    @BindView(R.id.tabs)
+    TabLayout tabs;
+    private void getTimestampsForHeadComment(Comment commentx)
+    {
+
+        DOWNLOAD_OP=HEAD_COMMENT_TIMESTAMPS;
+        final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        String qtxt=headcomment.getComment_id();
+
+        if(comment_filter.getSelectedItemPosition()==0)
+        {
+            //All
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==1)
+        {
+            //Agree
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==2)
+        {
+            //Disagree
+            qtxt=headcomment.getComment_id()+"_"+Comment.DISAGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==3)
+        {
+            //Question
+            qtxt=headcomment.getComment_id()+"_"+Comment.QUESTION;
+        }
+        else if(comment_filter.getSelectedItemPosition()==4)
+        {
+            //Answers
+            qtxt=headcomment.getComment_id()+"_"+Comment.ANSWER;
+        }
+
+        Log.i("getTmstmpsFrHadCmmnt","qtxt="+qtxt);
+
+        initiaLizeCommentList();
+        
+        testAdapter.is_loading=true;
+        testAdapter.notifyDataSetChanged();
+
+        mDatabase.child(qtxt)
+                .get()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                        Log.i("getTmstmpsFrHadCmmnt",e.getMessage());
+                        failedToDownload(e);
+
+                    }
+                })
+                .addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                    @Override
+                    public void onSuccess(DataSnapshot dataSnapshot) {
+
+                        Log.i("getTmstmpsFrHadCmmnt","onSuccess dataSnapshot.getValue() has "+(dataSnapshot.getValue()!=null));
+
+                        if(dataSnapshot.getValue()!=null)
+                        {
+                            convertAndOrderJsonTimestamps(dataSnapshot);
+                        }
+
+
+                    }
+                });
+
+
+    }
+
+    //The years the conversation has been carried out
+    List<Integer> years=new ArrayList<Integer>();
+    //The months the conversation has been carried out and indexed by the year-month string to retrieve
+    //and aggregate into lists indexed by the key
+    HashMap<Integer,ArrayList<Integer>> year_months=new HashMap<Integer,ArrayList<Integer>>();
+    //The days the conversation across months, years and indexed by the year-month-day
+    HashMap<String,ArrayList<Integer>> year_month_days=new HashMap<String,ArrayList<Integer>>();
+    //The Last Comment ID linked to combination of the day, month and year
+    HashMap<String,String> year_month_day_last_comment_id=new HashMap<String,String>();
+    //The list of the objects that singularly contain day, month and year
+    ArrayList<TMDay> tmDays=new ArrayList<TMDay>();
+    //tracks the timestamps already added to the master list of the comments
+    HashMap<String, CommentDate> timestamps_dates=new HashMap<String,CommentDate>();
+    boolean assigned_scroll_listener=false;
+    public int last_select_filter_option=-1;
+    HashMap<String,Boolean> process_comments=new HashMap<String, Boolean>();
+    public HashMap<String,ArrayList<Comment>> timestamp_comments=new HashMap<String,ArrayList<Comment>>();
+    HashMap<String,Boolean> no_more_comments=new HashMap<String,Boolean>();
+    public int last_loaded_position=0;
+    public int loading_timestamp_position=last_loaded_position;
+    HashMap<String, ArrayList<Comment>> ident_list=new HashMap<String, ArrayList<Comment>>();
+    private void convertAndOrderJsonTimestamps(DataSnapshot dataSnapshot)
+    {
+
+        String qtxt=headcomment.getComment_id();
+
+        if(comment_filter.getSelectedItemPosition()==0)
+        {
+            //All
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==1)
+        {
+            //Agree
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==2)
+        {
+            //Disagree
+            qtxt=headcomment.getComment_id()+"_"+Comment.DISAGREES;
+        }
+        else if(comment_filter.getSelectedItemPosition()==3)
+        {
+            //Question
+            qtxt=headcomment.getComment_id()+"_"+Comment.QUESTION;
+        }
+        else if(comment_filter.getSelectedItemPosition()==4)
+        {
+            //Answers
+            qtxt=headcomment.getComment_id()+"_"+Comment.ANSWER;
+        }
+        JSONObject jsonObject= null;
+        try {
+
+            jsonObject = new JSONObject(dataSnapshot.getValue().toString());
+            //Iterator<String> keys = jsonObject.keys();
+            JSONArray years_list=jsonObject.names();
+            //loop through the years
+            for(int i=0;i<years_list.length();i++)
+            {
+
+                //get each year
+                Integer year=Integer.parseInt(years_list.getString(i));
+                Log.i("getCommentsFrHedComent","year="+year);
+                years.add(year);
+
+                //find the months linked to each year
+                JSONObject jsonObject1=jsonObject.getJSONObject(years_list.getString(i));
+                Iterator<String> months_names = jsonObject1.keys();
+
+                //loop through the months
+                while(months_names.hasNext())
+                {
+
+                    //get each month
+                    String month_name = months_names.next();
+                    Integer month=Integer.parseInt(month_name);
+                    Log.i("getCommentsFrHedComent","month="+month_name);
+                    //get if already index a list linked to the year
+                    if(year_months.containsKey(year))
+                    {
+                        ArrayList<Integer> months=year_months.get(year);
+                        months.add(month);
+                        year_months.put(year,months);
+                    }
+                    else
+                    {
+                        //create a list linked to the year
+                        ArrayList<Integer> months=new ArrayList<>();
+                        months.add(month);
+                        year_months.put(year,months);
+                    }
+
+                    //find the days linked to the month
+                    JSONObject jsonObject2=jsonObject1.getJSONObject(month_name);
+                    Iterator<String> days = jsonObject2.keys();
+
+                    while(days.hasNext())
+                    {
+
+                        String day_name = days.next();
+                        Integer day=Integer.parseInt(day_name);
+                        Log.i("getCommentsFrHedComent","month="+month_name+" day="+day);
+
+                        //find the days linked to the year and month
+                        if(year_month_days.containsKey(year+"-"+month))
+                        {
+                            ArrayList<Integer> indexed_days=year_month_days.get(year+"-"+month);
+                            indexed_days.add(day);
+                            year_month_days.put(year+"-"+month,indexed_days);
+                        }
+                        else
+                        {
+                            ArrayList<Integer> indexed_days=new ArrayList<Integer>();
+                            indexed_days.add(day);
+                            year_month_days.put(year+"-"+month,indexed_days);
+
+                        }
+
+                        String value=jsonObject2.getString(day_name);
+                        year_month_day_last_comment_id.put(year+"-"+month+"-"+day,value);
+
+                    }
+
+
+
+                }
+
+            }
+
+            Collections.sort(years);
+            Collections.reverse(years);
+
+            //reorder the months and days
+            for(Integer year:years)
+            {
+
+                //find the list of months that belong to this year
+                if(year_months.containsKey(year))
+                {
+                    //reorder the months that belong to the year
+                    ArrayList<Integer> months=year_months.get(year);
+                    Collections.sort(months);
+                    Collections.reverse(months);
+                    //reorder the days belong to each month in this year
+                    for(Integer month:months)
+                    {
+                        //find the days belong to each month in this year
+                        if(year_month_days.containsKey(year+"-"+month))
+                        {
+
+                            //sort out days in that month and year
+                            //descending order
+                            ArrayList<Integer> days=year_month_days.get(year+"-"+month);
+                            Collections.sort(days);
+                            Collections.reverse(days);
+                            //loop through the days and with month and year in previous
+                            HashMap<String,String> jkms=new HashMap<String,String>();
+                            for(Integer day:days)
+                            {
+
+                                TMDay tmDay=new TMDay(month+"","");
+                                tmDay.setYear(year);
+                                tmDay.setMonth(month+"");
+                                tmDay.setDay(day+"");
+                                tmDay.addDay(day+"");
+
+                                if(jkms
+                                        .containsKey(tmDay.getYear()
+                                                +"-"+tmDay.getMonth()
+                                                +"-"+tmDay.getDay())==false)
+                                {
+
+                                    String hj=jkms
+                                            .get(year+"-"+month+"-"+day);
+                                    if(year_month_day_last_comment_id.containsKey(hj))
+                                    {
+                                        String last_comment_id=year_month_day_last_comment_id.get(hj);
+                                        tmDay.setLast_comment_id(last_comment_id);
+                                    }
+                                    jkms.put(hj,tmDay.getLast_comment_id());
+                                    tmDays.add(tmDay);
+
+                                }
+
+
+                            }
+
+                        }
+                    }
+
+                }
+
+            }
+            //looping through the list of the objects
+            // that singularly contain day, month and year
+            int starting= tmDays.size()-1;
+            //if there are too many days of the conversation
+            //load only 100 days worth of timestamps
+            //and delete the older than 100 days and then from
+            if(starting>99)
+            {
+                starting=99;
+
+            }
+            //looping through the list of the objects
+            // that singularly contain day, month and year
+            //looping from the most previuous first and added to the adapter list
+            for(int i=starting;i>=0;i--)
+            {
+
+                TMDay tmDay2=tmDays.get(i);
+                String timestamp=tmDay2.getDay()+"-"+tmDay2.getMonth()
+                        +"-"+tmDay2.getYear();
+                String timestamp2=tmDay2.getYear()+"-"+tmDay2.getMonth()
+                        +"-"+tmDay2.getDay();
+                Log.i("timstar",timestamp2);
+
+                if(testAdapter.started_loading_older_coments.containsKey(timestamp2))
+                {
+                    testAdapter.started_loading_older_coments.remove(timestamp2);
+                }
+                //is it already added to the comment list adapter to prevent duplicates
+                if(timestamps_dates.containsKey(timestamp)==false)
+                {
+
+                    Comment comment=new Comment();
+                    comment.setTimestamp(tmDay2);
+
+
+                    testAdapter.commentListUnderHeadComment.add(comment);
+                    int pl=testAdapter.commentListUnderHeadComment.size()-1;
+                    Log.i("adsxefs","adding "+comment.getTimestamp()+" "+pl);
+                    CommentDate commentDate=new CommentDate(comment);
+                    timestamps_dates.put(timestamp,commentDate);
+                }
+
+                if(i==0)
+                {
+
+                }
+
+            }
+
+            ArrayList<Comment> timetsmaps=new ArrayList<Comment>();
+            if(tmDays.size()>0)
+            {
+                for(int i=tmDays.size()-1;i>=0;i--)
+                {
+                    TMDay tmDay=tmDays.get(i);
+                    Comment comment=new Comment();
+                    comment.setTimestamp(tmDay);
+                    timetsmaps.add(comment);
+
+                }
+
+                ident_list.put(qtxt,timetsmaps);
+
+            }
+
+            Log.i("getTmstmpsFrHadCmmnt","timetsmaps.size="+timetsmaps.size()+" "+tmDays.size());
+            testAdapter.commentListUnderHeadComment.clear();
+            testAdapter.commentListUnderHeadComment.addAll(timetsmaps);
+            testAdapter.is_loading=false;
+            testAdapter.notifyDataSetChanged();
+
+            if(timetsmaps.size()>0)
+            {
+                OP=INITIAL_C;
+                int timestamp_pos=testAdapter.commentListUnderHeadComment.size()-1;
+                getComments(testAdapter.commentListUnderHeadComment.get(timestamp_pos),timestamp_pos);
+            }
+
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+
+        }
+
+
+    }
+
     //The head comment onclick events
     //variables for navigating the head comments
     int selected_headcomment_position=0;
@@ -378,7 +955,6 @@ public class TestGroup2 extends AppCompatActivity {
             if(selected_headcomment_position>0)
             {
                 prev_headcomment_area.setVisibility(View.VISIBLE);
-                badge_prev.setNumber(how_many_comments_before);
 
             }
             else
@@ -408,7 +984,6 @@ public class TestGroup2 extends AppCompatActivity {
             Comment commentx=headcommentArrayList.get(selected_headcomment_position);
             showHeadCommentx(commentx);
             int how_many_comments_before=selected_headcomment_position-0;
-            badge_prev.setNumber(how_many_comments_before);
             if(how_many_comments_before==0)
             {
                 prev_headcomment_area.setVisibility(View.GONE);
@@ -423,13 +998,34 @@ public class TestGroup2 extends AppCompatActivity {
             next_headcomment_area.setVisibility(View.VISIBLE);
         }
 
+
+
     }
+    void HeadCommentIndex()
+    {
+
+        int index=selected_headcomment_position+1;
+
+        if(index<1000)
+        {
+            headcomment_list_label.setText(Html.fromHtml("<b><strong>"+NumUtils.getAbbreviatedNum(index)
+                    +"<sup>th</sup>/"+NumUtils.getAbbreviatedNum(headcommentArrayList.size())+"</strong></b>"));
+        }
+        else
+        {
+            headcomment_list_label.setText(Html.fromHtml("<b><strong>"+NumUtils.getAbbreviatedNum(index)
+                    +"/"+NumUtils.getAbbreviatedNum(headcommentArrayList.size())+"</strong></b>"));
+        }
+    }
+    @BindView(R.id.loading_head_comments)
+    ProgressBar loading_head_comments;
     //methods for loading Head Comments
     private void LoadHeadComments()
     {
 
+        DOWNLOAD_OP=HEAD_COMMENTS;
         //add a agree item
-
+        loading_head_comments.setVisibility(View.VISIBLE);
         Query query= CloudWorker.getLetsTalkComments()
                 .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
                 .whereEqualTo(OrgFields.IS_NEW_TOPIC,true)
@@ -454,6 +1050,14 @@ public class TestGroup2 extends AppCompatActivity {
 
                         started_after_scroll=false;
                         Log.i("LoadHeadComments","e="+e.getMessage());
+                        Toast.makeText(TestGroup2.this
+                                ,"Getting Head Comments failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TestGroup2.this
+                                ,e.getMessage(), Toast.LENGTH_SHORT).show();
+                        if(headcommentArrayList.size()==0)
+                        {
+                            failedToDownload(e);
+                        }
 
                     }
                 })
@@ -461,6 +1065,7 @@ public class TestGroup2 extends AppCompatActivity {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
+                        loading_head_comments.setVisibility(View.GONE);
                         started_after_scroll=false;
                         Log.i("LoadHeadComments","queryDocumentSnapshots.isEmpty="+(queryDocumentSnapshots.isEmpty())
                                 +" queryDocumentSnapshots.size="+queryDocumentSnapshots.size());
@@ -501,6 +1106,7 @@ public class TestGroup2 extends AppCompatActivity {
 
 
 
+
                         }
                         else
                         {
@@ -519,7 +1125,9 @@ public class TestGroup2 extends AppCompatActivity {
                             badge.setText(NumUtils.getAbbreviatedNum(headcommentArrayList.size()-num_views_headcomments));
                             next_headcomment_area.setVisibility(View.VISIBLE);
 
+
                         }
+                        HeadCommentIndex();
 
 
                     }
@@ -540,28 +1148,71 @@ public class TestGroup2 extends AppCompatActivity {
     boolean no_more_headcomments=false;
     boolean started_after_scroll=false;
     private TestAdapter testAdapter;
-    private void getComments(Comment headcommment)
+    private void initiaLizeCommentList()
     {
-
-        busy=true;
         if(testAdapter==null)
         {
-            testAdapter=new TestAdapter();
+            testAdapter=new TestAdapter(this);
             //comment_list.setLayoutManager(new LinearLayoutManager(getContext()));
             comment_list.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL));
             comment_list.setAdapter(testAdapter);
             checkCommentListKeyBoard();
         }
-        testAdapter.is_loading=true;
-        testAdapter.commentListUnderHeadComment.clear();
-        testAdapter.notifyDataSetChanged();
+    }
+
+    private final static int INITIAL_C=0;
+    private final static int PREV_C=1;
+    private final static int NEXT_C=2;
+    private int OP=INITIAL_C;
+    Comment current_timestamp_comment;
+    boolean initial=true;
+    private void getComments(Comment timestamp_comment,int timestamp_pos)
+    {
+
+
+        this.current_timestamp_comment=timestamp_comment;
+        DOWNLOAD_OP=HEAD_COMMENT_COMMENTS;
+        comment_filter.setVisibility(View.VISIBLE);
+        tabs.setVisibility(View.VISIBLE);
+        busy=true;
+        initiaLizeCommentList();
+        if(OP==PREV_C)
+        {
+            testAdapter.notifyItemChanged(timestamp_comment.getAdapter_position());
+        }
+        if(OP==INITIAL_C||OP==PREV_C)
+        {
+            testAdapter.started_loading_older_coments.put(timestamp_comment.getTimestamp(),timestamp_comment.getComment_id());
+        }
+        else if(OP==NEXT_C)
+        {
+            testAdapter.started_loading_next_coments.put(timestamp_comment.getTimestamp(),timestamp_comment.getComment_id());
+        }
+        if(OP==INITIAL_C)
+        {
+            testAdapter.is_loading=true;
+            testAdapter.notifyDataSetChanged();
+        }
+
         Query query= CloudWorker.getLetsTalkComments()
-                .whereEqualTo(OrgFields.CONVERSATION_ID,"S3aNh6Jq7ZajBiJS2jut")
-                .whereEqualTo(OrgFields.PARENT_COMMENT_ID,headcommment.getComment_id())
-                .whereEqualTo(OrgFields.DAY,19)
-                .whereEqualTo(OrgFields.MONTH,12)
-                .whereEqualTo(OrgFields.YEAR,2022)
+                .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                .whereEqualTo(OrgFields.PARENT_COMMENT_ID,headcomment.getComment_id())
+                .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
                 .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+
+        if(OP==PREV_C)
+        {
+            query= CloudWorker.getLetsTalkComments()
+                    .whereEqualTo(OrgFields.CONVERSATION_ID,conversation_id)
+                    .whereEqualTo(OrgFields.PARENT_COMMENT_ID,headcomment.getComment_id())
+                    .whereEqualTo(OrgFields.DAY,timestamp_comment.getDay())
+                    .whereEqualTo(OrgFields.MONTH,timestamp_comment.getMonth())
+                    .whereEqualTo(OrgFields.YEAR,timestamp_comment.getYear())
+                    .whereLessThan(OrgFields.USER_CREATED_DATE,timestamp_comment.getCreatedDate())
+                    .orderBy(OrgFields.USER_CREATED_DATE, Query.Direction.DESCENDING);
+        }
 
         query.limit(10).get()
                 .addOnFailureListener(new OnFailureListener() {
@@ -571,6 +1222,8 @@ public class TestGroup2 extends AppCompatActivity {
                         testAdapter.is_loading=false;
                         testAdapter.notifyDataSetChanged();
                         Log.i("getComments","onFailure "+e.getMessage());
+                        failedToDownload(e);
+
                     }
                 })
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -578,7 +1231,17 @@ public class TestGroup2 extends AppCompatActivity {
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
 
+                        testAdapter.currentLoadingTimestampLabel="";
                         testAdapter.is_loading=false;
+                        if(testAdapter.started_loading_older_coments.containsKey(timestamp_comment.getTimestamp()))
+                        {
+                            testAdapter.started_loading_older_coments.remove(timestamp_comment.getTimestamp());
+                        }
+                        if(testAdapter.started_loading_next_coments.containsKey(timestamp_comment.getTimestamp()))
+                        {
+                            testAdapter.started_loading_next_coments.remove(timestamp_comment.getTimestamp());
+                        }
+
                         Log.i("getComments","onSuccess "+queryDocumentSnapshots.isEmpty());
 
                         if(queryDocumentSnapshots.isEmpty()==false)
@@ -586,47 +1249,272 @@ public class TestGroup2 extends AppCompatActivity {
 
                             disable_typing_area.setVisibility(View.GONE);
                             typing_area.setVisibility(View.VISIBLE);
-                            for(int i=0;i<queryDocumentSnapshots.getDocuments().size();i++)
+
+                            if(OP==INITIAL_C||OP==PREV_C)
                             {
 
-                                DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(i);
-                                Comment comment=new Comment(documentSnapshot);
-                                testAdapter.commentListUnderHeadComment.add(comment);
-                            }
 
-                            testAdapter.notifyDataSetChanged();
-                            final int yu=testAdapter.commentListUnderHeadComment.size()-1;
-                            Comment mkl1=testAdapter.commentListUnderHeadComment.get(yu);
-                            mkl1.setSent(false);
-                            testAdapter.commentListUnderHeadComment.set(yu,mkl1);
-                            testAdapter.notifyItemChanged(yu);
-                            comment_list.scrollToPosition(yu);
-                            comment_list.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.i("addCommentsX","1 yu="+yu);
-                                    comment_list.smoothScrollToPosition(yu);
-                                    Log.i("addCommentsX","2 yu="+yu);
-                                    if(yu<testAdapter.commentListUnderHeadComment.size())
+                                if(timestamp_comment.getComment().trim().isEmpty()==false)
+                                {
+                                    testAdapter.commentListUnderHeadComment.set(timestamp_pos+1,timestamp_comment);
+                                }
+
+                                for(int i=0;i<queryDocumentSnapshots.getDocuments().size();i++)
+                                {
+
+                                    DocumentSnapshot documentSnapshot=queryDocumentSnapshots.getDocuments().get(i);
+                                    Comment comment=new Comment(documentSnapshot);
+
+                                    if(i==queryDocumentSnapshots.size()-1&timestamp_pos<testAdapter.commentListUnderHeadComment.size())
                                     {
-                                        Comment mkl1=testAdapter.commentListUnderHeadComment.get(yu);
-                                        mkl1.setSent(true);
-                                        testAdapter.commentListUnderHeadComment.set(yu,mkl1);
-                                        testAdapter.notifyItemChanged(yu);
+                                        if(timestamp_comment.getComment().trim().isEmpty()==false)
+                                        {
+
+                                            testAdapter.commentListUnderHeadComment.set(timestamp_pos,comment);
+
+                                        }
+                                        else
+                                        {
+                                            testAdapter.commentListUnderHeadComment.set(timestamp_pos,comment);
+                                        }
+
                                     }
-                                    busy=false;
+                                    else
+                                    {
+                                        if(timestamp_pos+1<testAdapter.commentListUnderHeadComment.size())
+                                        {
+                                            testAdapter.commentListUnderHeadComment.add(timestamp_pos+1,comment);
+                                        }
+                                        else
+                                        {
+                                            testAdapter.commentListUnderHeadComment.add(comment);
+                                        }
+
+                                    }
+
+                                    if(i==1||i==4||i==8)
+                                    {
+                                        Comment comment1=new Comment();
+                                        comment1.setComment_type(Comment.NEWS_AD);
+
+                                        if(i==8)
+                                        {
+                                            comment1.setItAd(true);
+                                        }
+
+                                        if(timestamp_pos+1<testAdapter.commentListUnderHeadComment.size())
+                                        {
+                                            testAdapter.news_positions.put(timestamp_pos+1,"");
+                                            testAdapter.commentListUnderHeadComment.add(timestamp_pos+1,comment1);
+                                        }
+                                        else
+                                        {
+                                            testAdapter.news_positions.put(testAdapter.commentListUnderHeadComment.size(),"");
+                                            testAdapter.commentListUnderHeadComment.add(comment1);
+                                        }
+
+                                    }
+
+                                    if(testAdapter.timestamps_comments.containsKey(comment.getTimestamp()))
+                                    {
+
+                                        ArrayList<Comment> list=testAdapter.timestamps_comments.get(comment.getTimestamp());
+                                        if(list.size()>0)
+                                        {
+                                            if(OP==INITIAL_C||OP==NEXT_C)
+                                            {
+                                                list.add(comment);
+                                            }
+                                            else
+                                            {
+                                                list.add(0,comment);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            list.add(comment);
+                                        }
+
+                                        testAdapter.timestamps_comments.put(comment.getTimestamp(),list);
+
+                                    }
+                                    else
+                                    {
+
+                                        ArrayList<Comment> list=new ArrayList<Comment>();
+                                        if(list.size()>0)
+                                        {
+                                            if(OP==INITIAL_C||OP==NEXT_C)
+                                            {
+                                                list.add(comment);
+                                            }
+                                            else
+                                            {
+                                                list.add(0,comment);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            list.add(comment);
+                                        }
+                                        testAdapter.timestamps_comments.put(comment.getTimestamp(),list);
+                                    }
 
                                 }
-                            },200);
+
+                                if(queryDocumentSnapshots.size()<10)
+                                {
+                                    testAdapter.no_more_comments_previous.put(timestamp_comment.getTimestamp(),true);
+                                    testAdapter.notifyItemChanged(timestamp_comment.getAdapter_position());
+                                }
+
+                                if(initial)
+                                {
+                                    initial=false;
+                                    testAdapter.notifyDataSetChanged();
+                                    final int yu=testAdapter.getItemCount()-1;
+                                    final int offset=testAdapter.getOffset();
+                                    Comment mkl1=testAdapter.commentListUnderHeadComment.get(yu-offset);
+                                    mkl1.setSent(false);
+                                    testAdapter.commentListUnderHeadComment.set(yu-offset,mkl1);
+                                    testAdapter.notifyItemChanged(yu);
+                                    last_reading_pos=yu;
+                                    comment_list.scrollToPosition(yu);
+                                    comment_list.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Log.i("addCommentsX","1 yu="+yu);
+                                            comment_list.smoothScrollToPosition(yu);
+                                            Log.i("addCommentsX","2 yu="+yu);
+                                            if(yu<testAdapter.getItemCount())
+                                            {
+                                                Comment mkl1=testAdapter.commentListUnderHeadComment.get(yu-offset);
+                                                mkl1.setSent(true);
+                                                testAdapter.commentListUnderHeadComment.set(yu-offset,mkl1);
+                                                testAdapter.notifyItemChanged(yu);
+                                            }
+                                            busy=false;
+
+                                        }
+                                    },200);
+                                }
+                                else
+                                {
+                                    testAdapter.notifyItemChanged(timestamp_pos);
+                                    if(queryDocumentSnapshots.size()>1)
+                                    {
+
+                                        int hj=timestamp_pos+(queryDocumentSnapshots.size()-1);
+                                        int num=queryDocumentSnapshots.size()-1;
+                                        if(testAdapter.timestamps_comments.containsKey(timestamp_comment.getTimestamp()))
+                                        {
+                                            //if(i==1||i==4||i==8)
+                                            //news/ads 3 per every 10 comments for a timestamp
+                                            int jk=0;
+                                            if(queryDocumentSnapshots.size()>=2)
+                                            {
+                                                jk++;
+                                            }
+                                            if(queryDocumentSnapshots.size()>=5)
+                                            {
+                                                jk++;
+                                            }
+                                            if(queryDocumentSnapshots.size()>=8)
+                                            {
+                                                jk++;
+                                            }
+
+                                            num=+jk;
+                                            hj=timestamp_pos+((queryDocumentSnapshots.size()-1)+jk);
+
+                                        }
+                                        testAdapter.notifyItemRangeInserted(timestamp_pos+1
+                                                ,num);
+                                        int rem=testAdapter.timestamps_comments.get(timestamp_comment.getTimestamp()).size()/10;
+                                        Log.i("mxvsgdha","hj="+hj+" tp1="+timestamp_comment.getAdapter_position()
+                                                +" tp2="+timestamp_pos
+                                                +" tstmp.size="+testAdapter.timestamps_comments.get(timestamp_comment.getTimestamp()).size()
+                                                +" qsize="+queryDocumentSnapshots.size()+" rem="+rem);
+                                        if(hj<testAdapter.commentListUnderHeadComment.size())
+                                        {
+                                            Comment cmtx=testAdapter.commentListUnderHeadComment.get(hj);
+                                            Log.i("mxvsgdha","hj="+hj+" isadnews="+(cmtx.getComment_type()==Comment.NEWS_AD)+" "+cmtx.getComment()+" "+cmtx.getTimeStr());
+
+                                            comment_list.scrollToPosition(hj);
+                                            last_reading_pos=hj;
+
+
+                                        }
+
+                                    }
+                                }
+
+                            }
+                            else if(OP==NEXT_C)
+                            {
+
+                            }
+
+                            if(testAdapter.getActualNumberofComments()>headcomment
+                                    .getNum_comments())
+                            {
+                                num_people_read.setText(NumUtils.getAbbreviatedNum(testAdapter.getActualNumberofComments())+" comments");
+                            }
+
 
                         }
                         else
                         {
+                            if(OP==INITIAL_C||OP==PREV_C)
+                            {
+                                testAdapter.no_more_comments_previous.put(timestamp_comment.getTimestamp(),true);
+                                testAdapter.notifyItemChanged(timestamp_pos);
 
+                            }
+                            if(OP==NEXT_C)
+                            {
+                                testAdapter.no_more_comments_next.put(timestamp_comment.getTimestamp(),true);
+                                testAdapter.notifyItemChanged(timestamp_pos);
+
+                            }
                         }
 
                     }
                 });
+
+    }
+    AdLoader adLoader;
+    private void getAds()
+    {
+
+        AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")
+                .forNativeAd(new NativeAd.OnNativeAdLoadedListener() {
+                    @Override
+                    public void onNativeAdLoaded(NativeAd nativeAd) {
+                        // Show the ad.
+                        if(testAdapter==null)
+                        {
+                            initiaLizeCommentList();
+                        }
+
+                        testAdapter.addNativeAd(nativeAd);
+
+                    }
+                })
+                .withAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError adError) {
+                        // Handle the failure by logging, altering the UI, and so on.
+                    }
+                })
+                .withNativeAdOptions(new NativeAdOptions.Builder()
+                        // Methods in the NativeAdOptions.Builder class can be
+                        // used here to specify individual options settings.
+                        .build())
+                .build();
+
+        adLoader.loadAds(new AdRequest.Builder().build(), 1);
+
 
     }
     private int getLastVisibleItem(RecyclerView recyclerView) {
@@ -651,6 +1539,7 @@ public class TestGroup2 extends AppCompatActivity {
         }
         return maxSize;
     }
+
     //the recyclerview resizes
     boolean isKeyboardShowing=false;
     int last_reading_pos=0;
@@ -747,10 +1636,34 @@ public class TestGroup2 extends AppCompatActivity {
         //setUpViewPager();
 
         marker_filter_area.setVisibility(View.VISIBLE);
+        LoadConvo();
+        getAds();
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
 
-        LoadHeadComments();
+            }
+        });
 
-        label.setText("Kevin Samuels’ death result of hypertension");
+        bubbleEmitterView.setColorResources(R.color.glass2
+                ,R.color.glass2,R.color.glass);
+        countDownTimer=new CountDownTimer(3000,1000) {
+            @Override
+            public void onTick(long l) {
+                bubbleEmitterView.emitBubble(100);
+                bubbleEmitterView.emitBubble(100);
+                bubbleEmitterView.emitBubble(100);
+            }
+
+            @Override
+            public void onFinish() {
+
+                countDownTimer.start();
+            }
+        };
+
+        countDownTimer.start();
+
 
     }
 
@@ -758,11 +1671,337 @@ public class TestGroup2 extends AppCompatActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        if(getIntent().hasExtra(OrgFields.CONVERSATION_ID))
+        {
+            String conversation_id=getIntent().getStringExtra(OrgFields.CONVERSATION_ID);
+            Log.i("onPostCreate","conversation_id="+conversation_id);
+        }
+        else
+        {
+            Log.i("onPostCreate","no convo_id");
+        }
+
+        //getUIDs();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(getIntent().hasExtra(OrgFields.CONVERSATION_ID))
+        {
+            String conversation_id=getIntent().getStringExtra(OrgFields.CONVERSATION_ID);
+            Log.i("onResume","conversation_id="+conversation_id);
+        }
+        else
+        {
+            Log.i("onResume","no convo_id");
+        }
+
+
+
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        Log.i("onPostResume","last_reading_pos="+last_reading_pos);
+        if(last_reading_pos>0)
+        {
+
+
+            final int jk=last_reading_pos;
+            comment_list.scrollToPosition(jk);
+            comment_list.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    comment_list.smoothScrollToPosition(jk);
+                    Log.i("keyposa","last_reading_pos="+jk);
+
+                }
+            },1000);
+        }
+        else
+        {
+
+        }
+
+    }
+
+    ArrayList<NewsFactsMedia> newsFactsMediaArrayList=new ArrayList<NewsFactsMedia>();
+    private void getNewsSuggestions()
+    {
+
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "https://www.google.com/search?q="+bookieActivity.getActivity_title()+"&tbm=nws";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+
+                        Log.i("getNewsSuggestions","onResponse");
+
+                        UserInfoDatabase.databaseWriteExecutor
+                                .execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        Document doc = Jsoup.parse(response);
+                                        Elements body=doc.getElementsByTag("body");
+
+                                        if(body!=null)
+                                        {
+
+                                            if(body.isEmpty()==false)
+                                            {
+
+                                                Element body_1=body.get(0);
+                                                Elements alinks=body_1.select("a:matches(\\b(?:[a-z]){3,4}\\b)");
+
+                                                Log.i("getNewsSuggestions","alinks.isEmpty()="
+                                                        +(alinks.isEmpty()));
+
+                                                for(int i=0;i<alinks.size();i++)
+                                                {
+
+                                                    Element a=alinks.get(i);
+                                                    Elements spans=a.select("span:matches(\\b(?:[a-z]{0,10})\\b||\\b\\d{0,10})");
+                                                    Elements gms=a.getElementsByTag("span");
+                                                    if(a.hasParent())
+                                                    {
+                                                        gms=a.parent().getElementsByTag("span");
+                                                    }
+
+                                                    Elements djks=a.select("div[role=heading]");
+
+                                                    String sourcelink=a.attr("href");
+                                                    String heading="";
+                                                    String source="";
+                                                    String timestamp="";
+                                                    if(djks.isEmpty()==false)
+                                                    {
+                                                        Log.i("getNewsSuggestions",djks.get(0).text());
+                                                        heading=djks.get(0).text();
+
+                                                        if(spans.isEmpty()==false)
+                                                        {
+
+                                                            for(Element span:spans)
+                                                            {
+                                                                String p="^\\d\\s(minutes|weeks|moments|years|days|hours|months|a minute|a week|a moment|a year|a day|a hour|a month|minute|week|moment|year|day|hour|month|minute)\\s(ago)$";
+                                                                String p2="\\d\\s[A-Z]{1}[a-z]{2,8}\\s\\d{4}";
+                                                                Pattern pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+                                                                Pattern pattern2 = Pattern.compile(p2, Pattern.CASE_INSENSITIVE);
+                                                                Matcher matcher = pattern.matcher(span.text());
+                                                                Matcher matcher2 = pattern2.matcher(span.text());
+                                                                boolean matchFound = matcher.find();
+                                                                boolean matchFound2 = matcher2.find();
+                                                                if(matchFound||matchFound2)
+                                                                {
+                                                                    timestamp=span.text();
+                                                                }
+                                                                else
+                                                                {
+                                                                    source=span.text();
+                                                                }
+
+                                                            }
+
+                                                        }
+                                                    }
+
+                                                    //decide whether to scrap the link for the complete title
+                                                    if(heading.indexOf("...")>-1||source.isEmpty()==false)
+                                                    {
+                                                        Log.i("getNewsSuggestions","scraping "+i
+                                                                +" "+heading+" "+source);
+                                                        String hj=heading;
+                                                        if(hj.indexOf("...")>-1)
+                                                        {
+                                                            hj=hj.substring(0,hj.indexOf("..."));
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        Log.i("getNewsSuggestions",i
+                                                                +" "+heading+" "+source+" "+timestamp);
+                                                    }
+
+                                                    for(Element span:gms)
+                                                    {
+
+                                                        Pattern p = Pattern.compile("\\d\\s(?:[a-z]{3,10})\\s(ago)||(a)\\s(?:[a-z]{3,10})\\s(ago)||\\d\\s(?:[a-z]{3,10})\\s\\d{4}");
+                                                        Matcher m = p.matcher(span.text());
+
+                                                        if(span.text().trim().isEmpty()==false&m.matches()==false)
+                                                        {
+
+                                                            Log.i("jusgald_"+i,"i="+i+" text="+span.text());
+                                                            source=span.text();
+
+
+                                                        }
+                                                    }
+
+                                                    if(heading.isEmpty()==false&sourcelink.isEmpty()==false)
+                                                    {
+
+
+                                                        NewsFactsMedia newsFactsMedia=new NewsFactsMedia();
+                                                        newsFactsMedia.setTitle(heading);
+                                                        newsFactsMedia.setSource(source);
+                                                        newsFactsMedia.setLink(sourcelink);
+                                                        newsFactsMedia.setType(NewsFactsMedia.NEWS);
+                                                        newsFactsMediaArrayList.add(newsFactsMedia);
+                                                        Log.i("jsnajs",newsFactsMedia.getTitle()+" source="+newsFactsMedia.getSource()+" i="+i);
+
+
+
+                                                    }
+
+
+
+                                                }
+
+                                                TestGroup2.this.runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        if(testAdapter==null)
+                                                        {
+                                                            initiaLizeCommentList();
+                                                        }
+                                                        final boolean ml=testAdapter.newsFactsMediaArrayList.size()>0;
+                                                        Log.i("getNewsSuggestions","ml="+ml+" "+testAdapter.newsFactsMediaArrayList.size());
+                                                        testAdapter.addNewsAdsList(newsFactsMediaArrayList);
+                                                        if(ml==false)
+                                                        {
+                                                            testAdapter.notifyDataSetChanged();
+                                                        }
+
+                                                    }
+                                                });
+
+
+                                            }
+
+                                        }
+
+
+                                    }
+                                });
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                Log.i("getNewsSuggestions","error="+error.getMessage());
+
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+
+    }
+
+    private void startShowingNewsAlerts()
+    {
+
+        if(newsFactsMediaArrayList.size()>0)
+        {
+
+            NewsFactsMedia newsFactsMedia=newsFactsMediaArrayList.get(newsFactsMediaArrayList.size()-1);
+
+            int offset=testAdapter.getOffset();
+
+            if(offset==2)
+            {
+                testAdapter.showNewsAlerts(newsFactsMedia);
+            }
+
+        }
+
+    }
+
+    public String getDeviceId(Context context){
+        MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+            String androidId =
+                    Settings.Secure.getString((ContentResolver)context.getContentResolver(),Settings.Secure.ANDROID_ID);
+            messageDigest.update(androidId.getBytes());
+            byte[] arrby = messageDigest.digest();
+            StringBuffer sb = new StringBuffer();
+            int n = arrby.length;
+            for(int i=0; i<n; ++i){
+                String oseamiya = Integer.toHexString((int)(255 & arrby[i]));
+                while(oseamiya.length() < 2){
+                    oseamiya = "0" + oseamiya;
+                }
+                sb.append(oseamiya);
+            }
+            String result = sb.toString();
+            return result;
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return "";
+        }
+
+    }
+
+    void getUIDs()
+    {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AdvertisingIdClient.Info adInfo = AdvertisingIdClient.getAdvertisingIdInfo(TestGroup2.this);
+                    String myId = adInfo != null ? adInfo.getId() : null;
+
+                    Log.i("UIDMY", myId);
+                } catch (Exception e) {
+                    Log.i("UIDMY", e.getMessage());
+                    Toast toast = Toast.makeText(TestGroup2.this, "error occurred ", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+        });
     }
 
 
+    @Override
+    public void getCommentsForTimeStampsPrevTo(Comment first_comment_in_timestamp) {
 
+        OP=PREV_C;
+        Log.i("ljshdpajdsx",first_comment_in_timestamp.getDateTimeStr());
+        current_timestamp_comment=first_comment_in_timestamp;
+        getComments(first_comment_in_timestamp,first_comment_in_timestamp.getAdapter_position());
 
+    }
 
+    @Override
+    public void getCommentsForTimeStampsNextAfter(Comment last_comment_in_timestamp) {
+
+        OP=NEXT_C;
+
+    }
+
+    @Override
+    public void getCommentsForTimeStampsInitial(Comment timestamp_comemnt) {
+
+        OP=INITIAL_C;
+
+    }
+
+    @BindView(R.id.bubbleEmitter)
+    BubbleEmitterView bubbleEmitterView;
 
 }

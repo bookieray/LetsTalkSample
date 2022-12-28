@@ -64,6 +64,7 @@ import brainwind.letstalksample.data.database.user.user_info.UserInfo;
 import brainwind.letstalksample.data.database.user.user_info.UserInfoDao;
 import brainwind.letstalksample.data.database.user.user_info.UserInfoDatabase;
 import brainwind.letstalksample.features.letstalk.LetsTalkManageEach;
+import brainwind.letstalksample.features.letstalk.TestGroup2;
 import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo;
 import brainwind.letstalksample.fragments.letstalk.convo_threads.ConvoThreads;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
@@ -203,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements CommentListener {
                                 if(query_name.equals("convo_id"))
                                 {
                                     is_convo=true;
-                                    intent=new Intent(MainActivity.this, LetsTalkManageEach.class);
+                                    intent=new Intent(MainActivity.this, TestGroup2.class);
                                     intent.putExtra(OrgFields.CONVERSATION_ID,deepLink.getQueryParameter(query_name));
 
                                 }

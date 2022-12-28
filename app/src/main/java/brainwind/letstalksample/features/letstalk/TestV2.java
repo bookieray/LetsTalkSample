@@ -91,7 +91,7 @@ public class TestV2 extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         ButterKnife.bind(this,view);
-        testAdapter=new TestAdapter();
+        testAdapter=new TestAdapter(getActivity());
         //comment_list.setLayoutManager(new LinearLayoutManager(getContext()));
         comment_list.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL));
         comment_list.setAdapter(testAdapter);

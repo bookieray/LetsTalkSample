@@ -9,253 +9,370 @@
     xmlns:card_view="http://schemas.android.com/tools"
     android:background="@color/lightgray2">
 
-    <!--The head-->
-    <!--MultiWaveHeader, CardView -> FloatingActionButton (Back Button), TextView -> title-->
     <FrameLayout
-        android:id="@+id/uystra"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <com.scwang.wave.MultiWaveHeader
-            android:id="@+id/waveHeader"
+        <org.firezenk.bubbleemitter.BubbleEmitterView
+            android:id="@+id/bubbleEmitter"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            app:mwhStartColor="@color/baselight"
-            app:mwhCloseColor="@color/baselight_extra"
-            app:mwhWaveHeight="60dp"
-            android:layout_alignParentTop="true"
-            />
+            android:layout_height="match_parent"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/topPanel"
+            <!--The head-->
+            <!--MultiWaveHeader, CardView -> FloatingActionButton (Back Button), TextView -> title-->
+            <FrameLayout
+                android:id="@+id/uystra"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_alignParentTop="true"
-                card_view:cardCornerRadius="4dp"
-                card_view:cardBackgroundColor="@color/white"
+                android:layout_height="wrap_content">
 
-                >
+                <com.scwang.wave.MultiWaveHeader
+                    android:id="@+id/waveHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    app:mwhStartColor="@color/baselight"
+                    app:mwhCloseColor="@color/baselight_extra"
+                    app:mwhWaveHeight="60dp"
+                    android:layout_alignParentTop="true"
+                    />
 
-                <FrameLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <FrameLayout
-                        android:background="@drawable/card_edge"
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"/>
 
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/back_but"
-                        android:layout_width="wrap_content"
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/topPanel"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/baseline_keyboard_arrow_left_black_24dp"
-                        app:backgroundTint="@color/white"
-                        app:fabSize="mini" />
+                        android:layout_margin="10dp"
+                        android:layout_alignParentTop="true"
+                        card_view:cardCornerRadius="4dp"
+                        card_view:cardBackgroundColor="@color/white"
 
-                    <androidx.appcompat.widget.Toolbar
-                        android:id="@+id/toolbar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                    </androidx.appcompat.widget.Toolbar>
+                        >
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <LinearLayout
+                        <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="wrap_content">
 
-                            android:layout_marginLeft="40dp"
-                            android:layout_marginTop="3dp"
-                            android:orientation="vertical">
+                            <FrameLayout
+                                android:background="@drawable/card_edge"
+                                android:layout_width="4dp"
+                                android:layout_height="match_parent"/>
 
-
-                            <LinearLayout
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:id="@+id/back_but"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                                android:src="@drawable/baseline_keyboard_arrow_left_black_24dp"
+                                app:backgroundTint="@color/white"
+                                app:fabSize="mini" />
 
-                                <com.ms.square.android.expandabletextview.ExpandableTextView
-                                    xmlns:android="http://schemas.android.com/apk/res/android"
-                                    xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
-                                    android:id="@+id/label"
+
+                            <androidx.appcompat.widget.Toolbar
+                                android:id="@+id/toolbar"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+                            </androidx.appcompat.widget.Toolbar>
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    expandableTextView:maxCollapsedLines="2"
-                                    expandableTextView:animDuration="200"
-                                    android:paddingRight="1dp">
 
-                                    <hani.momanii.supernova_emoji_library.Helper.EmojiconTextView
-                                        android:id="@id/expandable_text"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginLeft="10dp"
-                                        android:layout_marginRight="10dp"
-                                        android:textSize="14dp"
-                                        android:textColor="#666666"
-                                        android:textStyle="bold"/>
+                                    android:layout_marginLeft="40dp"
+                                    android:layout_marginTop="3dp"
+                                    android:orientation="vertical">
 
-                                    <ImageButton
-                                        android:id="@id/expand_collapse"
+
+                                    <LinearLayout
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:padding="12dp"
-                                        android:layout_gravity="right|bottom"
-                                        android:background="@android:color/transparent"/>
-                                </com.ms.square.android.expandabletextview.ExpandableTextView>
+                                        android:orientation="vertical">
+
+                                        <com.ms.square.android.expandabletextview.ExpandableTextView
+                                            xmlns:android="http://schemas.android.com/apk/res/android"
+                                            xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
+                                            android:id="@+id/label"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            expandableTextView:maxCollapsedLines="2"
+                                            expandableTextView:animDuration="200"
+                                            android:paddingRight="1dp">
+
+                                            <hani.momanii.supernova_emoji_library.Helper.EmojiconTextView
+                                                android:id="@id/expandable_text"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginLeft="10dp"
+                                                android:layout_marginRight="10dp"
+                                                android:textSize="14dp"
+                                                android:textColor="#666666"
+                                                android:textStyle="bold"/>
+
+                                            <ImageButton
+                                                android:id="@id/expand_collapse"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:padding="12dp"
+                                                android:layout_gravity="right|bottom"
+                                                android:background="@android:color/transparent"/>
+                                        </com.ms.square.android.expandabletextview.ExpandableTextView>
 
 
-                            </LinearLayout>
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+
+                                        <TextView
+                                            android:id="@+id/activity_type"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+
+                                            android:text="Lets Talk"
+                                            android:textColor="@color/black"
+                                            android:textSize="13dp"
+                                            android:layout_marginLeft="10dp"
+                                            android:textStyle="bold"/>
+
+                                        <TextView
+                                            android:id="@+id/edit_activity"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingBottom="10dp"
+                                            android:text="Tap to Edit"
+                                            android:textColor="@color/blue"
+                                            android:textSize="13dp"
+                                            android:layout_marginLeft="5dp"
+                                            android:visibility="gone"/>
+
+                                        <TextView
+                                            android:id="@+id/status"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+
+                                            android:text="No News Source"
+                                            android:textColor="@color/red"
+                                            android:textSize="13dp"
+                                            android:layout_marginLeft="10dp"/>
+
+
+
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
+                            </RelativeLayout>
+
+
+                        </FrameLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/msikapoda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/topPanel"
+                        android:layout_centerHorizontal="true"
+                        android:visibility="gone">
+
+
+
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/oisuyka"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/msikapoda"
+                        android:layout_centerHorizontal="true">
+
+                        <RelativeLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            >
 
                             <LinearLayout
+                                android:id="@+id/poslkad"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-
-                                <TextView
-                                    android:id="@+id/activity_type"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:paddingBottom="10dp"
-                                    android:text="Lets Talk"
-                                    android:textColor="@color/black"
-                                    android:textSize="13dp"
-                                    android:layout_marginLeft="10dp"
-                                    android:textStyle="bold"/>
+                                android:orientation="horizontal"
+                                android:padding="3dp">
 
                                 <TextView
-                                    android:id="@+id/status"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:paddingBottom="10dp"
-                                    android:text="No News Source"
-                                    android:textColor="@color/red"
-                                    android:textSize="13dp"
-                                    android:layout_marginLeft="10dp"/>
+                                    android:text="Head Comments"
+                                    android:textStyle="bold"
+                                    />
+
+                                <TextView
+                                    android:id="@+id/headcomment_list_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text=""
+                                    android:textColor="@color/purple_700"
+                                    android:paddingRight="5dp"
+                                    android:paddingLeft="3dp"
+                                    />
 
                             </LinearLayout>
 
+                        </RelativeLayout>
 
 
 
-                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+
+
+
+
+                    <include layout="@layout/head_comment_in_convo"
+                        android:layout_below="@id/oisuyka"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        />
+
+                    <RelativeLayout
+                        android:id="@+id/marker_filter_area"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:background="@color/white"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:layout_below="@id/head_comment_convo"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Agreed"
+                            android:layout_alignParentLeft="true"
+                            android:textColor="@color/purple_700"
+                            />
+
+                        <Spinner
+                            android:id="@+id/comment_filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerHorizontal="true"
+                            android:entries="@array/ctypes" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:text="Disagree"
+                            android:textColor="@color/red" />
 
                     </RelativeLayout>
 
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tabs"
+                        android:layout_width="match_parent"
+                        android:layout_height="27dp"
+                        android:layout_below="@id/marker_filter_area"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        app:tabTextAppearance="@style/MineCustomTabText"
+                        android:visibility="gone"
+                        >
 
-                </FrameLayout>
+                        <com.google.android.material.tabs.TabItem
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Text"
+                            />
 
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/oisuyka"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/topPanel"
-                android:layout_centerHorizontal="true">
-
-                <TextView
-                    android:id="@+id/lksi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Head Comments"
-                    android:textStyle="bold"
-                    android:padding="5dp"
-                    />
-
-            </androidx.cardview.widget.CardView>
+                        <com.google.android.material.tabs.TabItem
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Voice Notes" />
 
 
-            <include layout="@layout/head_comment_in_convo"
-                android:layout_below="@id/oisuyka"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                />
+                    </com.google.android.material.tabs.TabLayout>
+
+                    <!--The RecyclerView for the commentary-->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/comment_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@id/tabs"
+                        android:layout_marginBottom="60dp"
+                        />
+
+                    <!--The Typing text area-->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:orientation="vertical">
+
+
+                        <include layout="@layout/image_share_preview"
+                            android:layout_marginLeft="70dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+
+                        <include layout="@layout/message_qouted_commentating"
+                            android:layout_marginLeft="70dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            />
+
+
+                        <include layout="@layout/typing_area"/>
+
+                    </LinearLayout>
+
+
+
+                </RelativeLayout>
+
+            </FrameLayout>
 
             <RelativeLayout
-                android:id="@+id/marker_filter_area"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:background="@color/white"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:layout_below="@id/head_comment_convo"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Agreed"
-                    android:layout_alignParentLeft="true"
-                    android:textColor="@color/purple_700"
-                    />
-
-                <Spinner
-                    android:id="@+id/comment_filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:entries="@array/ctypes" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:text="Disagree"
-                    android:textColor="@color/red" />
-
-            </RelativeLayout>
-
-            <!--The RecyclerView for the commentary-->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/comment_list"
+                android:id="@+id/loading_area"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/marker_filter_area"
-                android:layout_marginBottom="60dp"
-                />
+                android:background="@color/glass2">
 
-            <!--The Typing text area-->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:orientation="vertical">
-
-
-                <include layout="@layout/image_share_preview"
-                    android:layout_marginLeft="70dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-
-                <include layout="@layout/message_qouted_commentating"
-                    android:layout_marginLeft="70dp"
+                <TextView
+                    android:id="@+id/oiudjas"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    />
+                    android:text="Loading Convo"
+                    android:layout_centerInParent="true"
+                    android:textColor="@color/purple_700"/>
+
+                <ProgressBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_below="@id/oiudjas"/>
 
 
-                <include layout="@layout/typing_area"/>
-
-            </LinearLayout>
-
-
+            </RelativeLayout>
 
         </RelativeLayout>
 
     </FrameLayout>
-
-
 
 </RelativeLayout>
