@@ -388,7 +388,13 @@
 
             </RelativeLayout>
 
-
+            <include layout="@layout/recording_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                />
 
         </RelativeLayout>
 

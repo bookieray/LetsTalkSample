@@ -17,6 +17,8 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -39,12 +41,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -124,6 +128,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -131,6 +136,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -167,6 +174,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     //The conversation title and toolbar
     @BindView(R.id.waveHeader)
     MultiWaveHeader waveHeader;
+
     @BindView(R.id.label)
     ExpandableTextView label;
     @BindView(R.id.status)
@@ -178,6 +186,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     @BindView(R.id.loading_area)
     RelativeLayout loading_area;
     private CountDownTimer countDownTimer;
+
 
     private void LoadConvo()
     {
@@ -1946,6 +1955,8 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
     }
 
+    @BindView(R.id.record_view)
+    FrameLayout record_view;
     private GoogleSignInClient mGoogleSignInClient;
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -2034,7 +2045,17 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     public void RecordVN()
     {
 
+        playing_time.setVisibility(View.INVISIBLE);
+        timer.setVisibility(View.VISIBLE);
         recording_before_signin=true;
+        recording=false;
+        if(mRecorder!=null)
+        {
+            stopRecording();
+        }
+        StopPlayLocalAudio();
+        pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_stop_circle_48));
+
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if(account!=null)
         {
@@ -2069,146 +2090,341 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     String fileName="";
     boolean recording=false;
     File tempFile;
-    private void RecordVNAudio()
+
+    public void RecordVNAudio()
     {
 
         Log.i("RecordVNAudio","started");
 
-        Dexter.withContext(this)
-                .withPermissions(
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                ).withListener(new MultiplePermissionsListener() {
-                    @Override public void onPermissionsChecked(MultiplePermissionsReport report)
-                    {
+        boolean cm=false;
 
-                        /* ... */
-                        if(report.areAllPermissionsGranted())
+        // Start the animation
+        cm=true;
+
+        if(cm)
+        {
+
+            Dexter.withContext(this)
+                    .withPermissions(
+                            Manifest.permission.RECORD_AUDIO,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE
+                    ).withListener(new MultiplePermissionsListener() {
+                        @Override public void onPermissionsChecked(MultiplePermissionsReport report)
                         {
 
-                            fileName= UUID.randomUUID().toString();
-                            Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
-                            LocalDateTime localDateTime=new LocalDateTime();
-                            fileName= localDateTime.millisOfDay().getAsText()+"";
-                            String jkl=bookieActivity.getActivity_title();
-                            jkl=jkl.replace("#","");
-                            jkl=jkl.replace("%","");
-                            jkl=jkl.replace("&","");
-                            jkl=jkl.replace("{","");
-                            jkl=jkl.replace("}","");
-                            jkl=jkl.replace("\\","");
-                            jkl=jkl.replace(" ","");
-                            jkl=jkl.replace("$","");
-                            jkl=jkl.replace(">","");
-                            jkl=jkl.replace("*","");
-                            jkl=jkl.replace("?","");
-                            jkl=jkl.replace("/","");
-                            jkl=jkl.replace("!","");
-                            jkl=jkl.replace("'","");
-                            jkl=jkl.replace('"'+"","");
-                            jkl=jkl.replace(":","");
-                            jkl=jkl.replace("@","");
-                            jkl=jkl.replace("+","");
-                            jkl=jkl.replace("|","");
-                            jkl=jkl.replace("=","");
-                            jkl=jkl.replace("’","");
-                            fileName=jkl;
-                            //getExternalStorageDirectory
-                            fileName= jkl;
-
-                            File dir=TestGroup2.this.getFilesDir();
-                            fileName=dir.getAbsolutePath()+"/"+jkl+".3gp";
-                            tempFile=new File(fileName);
-                            if(mRecorder==null)
+                            /* ... */
+                            if(report.areAllPermissionsGranted())
                             {
-                                // below method is used to initialize
-                                // the media recorder class
-                                mRecorder = new MediaRecorder();
-                                // below method is used to set the audio
-                                // source which we are using a mic.
-                                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                                mRecorder.setOutputFile(tempFile.getAbsolutePath());
-                            }
 
-                            if(recording)
-                            {
-                                recording=false;
-                                // below method will stop
-                                //the audio recording.
-                                mRecorder.stop();
-                                // below method will release
-                                // the media recorder class.
-                                mRecorder.release();
-                                mRecorder = null;
-                                if(new File(tempFile.getAbsolutePath()).exists())
+                                fileName= UUID.randomUUID().toString();
+                                Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
+                                LocalDateTime localDateTime=new LocalDateTime();
+                                fileName= localDateTime.millisOfDay().getAsText()+"";
+                                String jkl=bookieActivity.getActivity_title();
+                                jkl=jkl.replace("#","");
+                                jkl=jkl.replace("%","");
+                                jkl=jkl.replace("&","");
+                                jkl=jkl.replace("{","");
+                                jkl=jkl.replace("}","");
+                                jkl=jkl.replace("\\","");
+                                jkl=jkl.replace(" ","");
+                                jkl=jkl.replace("$","");
+                                jkl=jkl.replace(">","");
+                                jkl=jkl.replace("*","");
+                                jkl=jkl.replace("?","");
+                                jkl=jkl.replace("/","");
+                                jkl=jkl.replace("!","");
+                                jkl=jkl.replace("'","");
+                                jkl=jkl.replace('"'+"","");
+                                jkl=jkl.replace(":","");
+                                jkl=jkl.replace("@","");
+                                jkl=jkl.replace("+","");
+                                jkl=jkl.replace("|","");
+                                jkl=jkl.replace("=","");
+                                jkl=jkl.replace("’","");
+                                fileName=jkl;
+                                //getExternalStorageDirectory
+                                fileName= jkl;
+
+                                File dir=TestGroup2.this.getFilesDir();
+                                fileName=dir.getAbsolutePath()+"/"+jkl+".3gp";
+                                tempFile=new File(fileName);
+                                if(mRecorder==null)
                                 {
-                                    Log.i("RecordVNAudio","fileName.size="+new File(tempFile.getAbsolutePath()).length());
-                                    PlayLocalAudio();
+                                    // below method is used to initialize
+                                    // the media recorder class
+                                    mRecorder = new MediaRecorder();
+                                    // below method is used to set the audio
+                                    // source which we are using a mic.
+                                    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                                    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                                    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                                    mRecorder.setOutputFile(tempFile.getAbsolutePath());
+                                }
+
+                                Log.i("RecordVNAudio","recording="+recording);
+                                if(recording)
+                                {
+
+                                    if(countDownTimerl!=null)
+                                    {
+                                        countDownTimerl.cancel();
+                                        timer.setText("");
+
+                                    }
+                                    recording=false;
+                                    if(mRecorder!=null)
+                                    {
+                                        // below method will stop
+                                        //the audio recording.
+                                        mRecorder.stop();
+                                        // below method will release
+                                        // the media recorder class.
+                                        mRecorder.release();
+                                        mRecorder = null;
+                                    }
+                                    if(new File(tempFile.getAbsolutePath()).exists())
+                                    {
+                                        Log.i("RecordVNAudio","fileName.size="+new File(tempFile.getAbsolutePath()).length());
+                                        PlayLocalAudio();
+                                    }
+                                    else
+                                    {
+                                        Log.i("RecordVNAudio","fileName does not exists");
+                                    }
+
                                 }
                                 else
                                 {
-                                    Log.i("RecordVNAudio","fileName does not exists");
+
+
+                                    record_view.setVisibility(View.VISIBLE);
+                                    done.setVisibility(View.INVISIBLE);
+                                    delete.setVisibility(View.INVISIBLE);
+                                    slider.setVisibility(View.INVISIBLE);
+                                    recording=true;
+                                    startCountdownTimer();
+                                    Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
+                                    if(new File(fileName).exists())
+                                    {
+                                        new File(fileName).delete();
+                                    }
+
+                                    try
+                                    {
+                                        mRecorder.prepare();
+                                        mRecorder.start();
+                                    }
+                                    catch(Exception exception)
+                                    {
+                                        Log.i("RecordVNAudio", "prepare() failed "+exception.getMessage());
+                                        // below method will stop
+                                        //the audio recording.
+                                        mRecorder = null;
+                                    }
+
                                 }
+
                             }
                             else
                             {
-                                recording=true;
 
-                                Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
-                                if(new File(fileName).exists())
-                                {
-                                    new File(fileName).delete();
-                                }
+                                Log.i("RecordVNAudio","not areAllPermissionsGranted");
 
-                                try
-                                {
-
-
-                                    mRecorder.prepare();
-                                    mRecorder.start();
-
-                                }
-                                catch(Exception exception)
-                                {
-                                    Log.i("RecordVNAudio", "prepare() failed "+exception.getMessage());
-                                    // below method will stop
-                                    //the audio recording.
-                                    mRecorder = null;
-                                }
 
 
 
                             }
 
                         }
-                        else
-                        {
-
-                            Log.i("RecordVNAudio","not areAllPermissionsGranted");
-
-
+                        @Override public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions,
+                                                                                 PermissionToken token) {
+                            /* ... */
 
 
                         }
 
-                    }
-                    @Override public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions,
-                                                                             PermissionToken token) {
-                        /* ... */
+                    }).check();
+
+        }
 
 
-                    }
 
-                }).check();
 
+    }
+
+
+    private void stopRecording()
+    {
+
+        if(recording)
+        {
+            done.setVisibility(View.VISIBLE);
+            delete.setVisibility(View.VISIBLE);
+            timer.setVisibility(View.VISIBLE);
+
+            if(countDownTimerl!=null)
+            {
+                countDownTimerl.cancel();
+                timer.setText("60");
+
+            }
+            recording=false;
+            if(mRecorder!=null)
+            {
+                // below method will stop
+                //the audio recording.
+                mRecorder.stop();
+                // below method will release
+                // the media recorder class.
+                mRecorder.release();
+                mRecorder = null;
+            }
+            if(new File(tempFile.getAbsolutePath()).exists())
+            {
+                Log.i("RecordVNAudio","fileName.size="+new File(tempFile.getAbsolutePath()).length());
+                PlayLocalAudio();
+            }
+            else
+            {
+                Log.i("RecordVNAudio","fileName does not exists");
+            }
+
+        }
+        if(countDownTimerl!=null)
+        {
+            countDownTimerl.cancel();
+            countDownTimerl=null;
+        }
+        if(timertask!=null)
+        {
+            timertask.cancel();
+        }
+        StopPlayLocalAudio();
+    }
+
+    @BindView(R.id.pause_stop)
+    FloatingActionButton pause_stop;
+    @BindView(R.id.done)
+    FloatingActionButton done;
+    @BindView(R.id.delete)
+    FloatingActionButton delete;
+
+    @OnClick(R.id.pause_stop)
+    public void pauseStopRecPlay()
+    {
+
+        if(recording)
+        {
+
+            pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_play_arrow_24));
+            if(countDownTimerl!=null)
+            {
+                countDownTimerl.cancel();
+                timer.setText("");
+
+            }
+            recording=false;
+            if(mRecorder!=null)
+            {
+                // below method will stop
+                //the audio recording.
+                mRecorder.stop();
+                // below method will release
+                // the media recorder class.
+                mRecorder.release();
+                mRecorder = null;
+            }
+            if(new File(tempFile.getAbsolutePath()).exists())
+            {
+                Log.i("RecordVNAudio","fileName.size="+new File(tempFile.getAbsolutePath()).length());
+                PlayLocalAudio();
+            }
+            else
+            {
+                Log.i("RecordVNAudio","fileName does not exists");
+            }
+
+        }
+        else if(mPlayer!=null)
+        {
+
+            if(mPlayer.isPlaying())
+            {
+                PausePlayLocalAudio();
+                pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_play_circle_outline_24));
+            }
+            else{
+                ResumePlayLocalAudio();
+                pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_play_arrow_24));
+            }
+
+        }
+        else if(tempFile!=null)
+        {
+            pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_play_arrow_24));
+            PlayLocalAudio();
+        }
+
+
+    }
+
+    @OnClick(R.id.delete)
+    void Delete()
+    {
+
+        record_view.setVisibility(View.INVISIBLE);
+        stopRecording();
+        recording=false;
+
+    }
+
+    CountDownTimer countDownTimerl;
+    @BindView(R.id.timerx)
+    TextView timer;
+    private void startCountdownTimer()
+    {
+
+        Log.i("RecordVNAudio","startCountdownTimer "+(countDownTimerl!=null));
+        if(countDownTimerl!=null)
+        {
+            countDownTimerl.cancel();
+            countDownTimerl=null;
+        }
+        timer.setVisibility(View.VISIBLE);
+        countDownTimerl=new CountDownTimer(60000,1000) {
+            @Override
+            public void onTick(long l) {
+
+                if(timertask!=null)
+                {
+                    timertask.cancel();
+                    timertask=null;
+                }
+                final long seconds_left=l/1000;
+                timer.setText(seconds_left+"");
+                timer.setVisibility(View.VISIBLE);
+                Log.i("djfsfd","startCountdownTimer sec="+seconds_left);
+
+
+            }
+
+            @Override
+            public void onFinish() {
+                RecordVNAudio();
+            }
+        }.start();
 
     }
 
     MediaPlayer mPlayer;
     boolean wasPlaying=false;
+    @BindView(R.id.slider)
+    SeekBar slider;
+    @BindView(R.id.playing_time)
+    TextView playing_time;
+    private Timer timertask;
     private void PlayLocalAudio()
     {
 
@@ -2218,12 +2434,122 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
             if(tempFile.exists())
             {
 
+                timer.setVisibility(View.INVISIBLE);
+                if(countDownTimerl!=null)
+                {
+                    countDownTimerl.cancel();
+                    countDownTimerl=null;
+                }
                 mPlayer = new MediaPlayer();
                 try {
                     mPlayer.setDataSource(tempFile.getAbsolutePath());
+
                     mPlayer.prepare();
+                    if(slider.getProgress()>0&slider.getProgress()<mPlayer.getDuration())
+                    {
+                        mPlayer.seekTo(slider.getProgress());
+                    }
                     mPlayer.start();
                     wasPlaying=true;
+                    pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_pause_circle_filled_24));
+                    done.setVisibility(View.VISIBLE);
+                    delete.setVisibility(View.VISIBLE);
+                    slider.setVisibility(View.VISIBLE);
+                    slider.setMax(mPlayer.getDuration());
+
+                    slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                        @Override
+                        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                            if(mPlayer!=null)
+                            {
+
+                                long j=mPlayer.getCurrentPosition()/1000;
+                                playing_time.setText(j+"");
+
+                            }
+                            else
+                            {
+                                int j=i/1000;
+                                playing_time.setText(j+"");
+                            }
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {
+                            PausePlayLocalAudio();
+
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {
+                            if(mPlayer!=null)
+                            {
+                                paused_position=seekBar.getProgress();
+                                mPlayer.seekTo(seekBar.getProgress());
+                                ResumePlayLocalAudio();
+                            }
+                        }
+                    });
+
+                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mediaPlayer) {
+                            wasPlaying=false;
+                            if(mPlayer!=null)
+                            {
+                                long j=mPlayer.getDuration()/1000;
+                                timer.setText(j+"");
+                                Log.i("djfsfd","onCompletion");
+                                slider.setProgress(mPlayer.getCurrentPosition());
+                                mPlayer.release();
+                                mPlayer=null;
+                                pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_play_arrow_24));
+                                timertask.cancel();
+
+                            }
+                        }
+                    });
+                    playing_time.setVisibility(View.VISIBLE);
+                    timertask=new Timer();
+                    timertask.scheduleAtFixedRate(new TimerTask() {
+
+                        @Override
+
+                        public void run() {
+
+                            try {
+
+                                if(recording==false&mPlayer!=null)
+                                {
+                                    if(mPlayer.isPlaying())
+                                    {
+
+                                        slider.setProgress(mPlayer.getCurrentPosition());
+                                        long j=mPlayer.getCurrentPosition()/1000;
+                                        //playing_time.setText(j+"");
+                                        Log.i("djfsfd","startCountdownTimer p="+j+" ");
+
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                }
+                                else
+                                {
+                                    this.cancel();
+                                }
+
+
+                            } catch (Exception e) {
+
+                            }
+
+                        }
+
+                    }, 0, 100);
+                    slider.setVisibility(View.VISIBLE);
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -2271,7 +2597,14 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
             }
             mPlayer.release();
             mPlayer=null;
+            slider.setVisibility(View.INVISIBLE);
+            timer.setVisibility(View.INVISIBLE);
+            delete.setVisibility(View.INVISIBLE);
+            done.setVisibility(View.INVISIBLE);
+            pause_stop.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_stop_circle_48));
+            record_view.setVisibility(View.INVISIBLE);
         }
+
 
     }
 
