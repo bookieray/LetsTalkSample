@@ -42,7 +42,6 @@ import brainwind.letstalksample.PlayVideoActivity;
 import brainwind.letstalksample.R;
 import brainwind.letstalksample.data.textwork.PartExtractor;
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
-import brainwind.letstalksample.features.websearch.VideoMenuHelper;
 import brainwind.letstalksample.utils.ImageUtil;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -63,7 +62,7 @@ public class FragmentSuggestionsForLetsTalk extends Fragment {
     private String convo_title;
     private NewsFactsMediaAdapter newsFactsMediaAdapter;
     private VideoAdapter videoAdapter;
-    private VideoMenuHelper videoMenuHelper;
+
     private int offset=0;
 
     public FragmentSuggestionsForLetsTalk() {

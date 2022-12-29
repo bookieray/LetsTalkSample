@@ -18,11 +18,11 @@
             android:layout_height="wrap_content">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/next_item"
+                android:id="@+id/vn_mic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
-                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:src="@drawable/ic_baseline_mic_24"
                 app:backgroundTint="@color/white"
                 app:fabSize="mini" />
 

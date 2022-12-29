@@ -1,5 +1,9 @@
 package brainwind.letstalksample.features.letstalk;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +16,8 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,10 +25,13 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
@@ -61,10 +70,24 @@ import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.GeneratedIds;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -73,6 +96,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.auth.User;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.DialogOnAnyDeniedMultiplePermissionsListener;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.karumi.dexter.listener.single.PermissionListener;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 import com.nex3z.notificationbadge.NotificationBadge;
 import com.scwang.wave.MultiWaveHeader;
@@ -87,6 +120,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -96,6 +131,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1449,6 +1485,8 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                                     }
                                 }
 
+                                skipTimestampSH();
+
                             }
                             else if(OP==NEXT_C)
                             {
@@ -1460,6 +1498,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                             {
                                 num_people_read.setText(NumUtils.getAbbreviatedNum(testAdapter.getActualNumberofComments())+" comments");
                             }
+
 
 
                         }
@@ -1483,6 +1522,229 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                 });
 
     }
+
+    CountDownTimer countDownTimerx;
+    boolean smkl=false;
+    HashMap<String,Boolean> shownship_timestamps=new HashMap<String,Boolean>();
+    private void skipTimestampSH()
+    {
+
+        if(comment_list.getLayoutManager()!=null) {
+
+            final int first = findVisiblePosition(comment_list);
+            final int last = findLastVisiblePosition(comment_list);
+
+            UserInfoDatabase.databaseWriteExecutor
+                    .execute(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            Comment timestamp_commentx = null;
+                            if(first>-1&first<testAdapter.commentListUnderHeadComment.size())
+                            {
+                                Comment cmy=testAdapter.commentListUnderHeadComment.get(first);
+                                if(cmy.getComment_type()!=Comment.NEWS_AD)
+                                {
+                                    timestamp_commentx=cmy;
+                                }
+                            }
+                            if(last>-1&last<testAdapter.commentListUnderHeadComment.size()&timestamp_commentx==null)
+                            {
+                                Comment cmy=testAdapter.commentListUnderHeadComment.get(last);
+                                if(cmy.getComment_type()!=Comment.NEWS_AD)
+                                {
+                                    timestamp_commentx=cmy;
+                                }
+                            }
+
+                            final Comment timestamp_comment=timestamp_commentx;
+                            if(timestamp_comment!=null)
+                            {
+                                Log.i("skipTimestampSH","first="+first+" "+timestamp_comment.getAdapter_position()+" "+timestamp_comment.getTimestamp()
+                                        +" "+shownship_timestamps.containsKey(timestamp_comment.getTimestamp().trim()));
+
+                                int scrollto=0;
+                                for(int uj=timestamp_comment.getAdapter_position();uj>=0;uj--)
+                                {
+
+                                    Comment comment=testAdapter.commentListUnderHeadComment.get(uj);
+                                    if(comment.getTimestamp().equals(timestamp_comment.getTimestamp())==false
+                                            &comment.getComment_type()!=Comment.NEWS_AD)
+                                    {
+                                        scrollto=uj;
+                                        break;
+                                    }
+
+                                }
+
+                                Log.i("skipTimestampSH","scrollto="+scrollto);
+                                if(scrollto>0)
+                                {
+
+                                    TestGroup2.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+
+                                            if(timestamp_comment!=null)
+                                            {
+                                                if(shownship_timestamps.containsKey(timestamp_comment.getTimestamp().trim())==false
+                                                        &timestamp_comment.getAdapter_position()-1>=0)
+                                                {
+
+
+                                                    smkl=true;
+                                                    shownship_timestamps.put(timestamp_comment.getTimestamp().trim(),true);
+                                                    timestamp_skipper.setText("Skip to Previous day"+" in 4");
+                                                    timestamp_skipper.setVisibility(View.VISIBLE);
+                                                    countDownTimerx=new CountDownTimer(4000,1000) {
+                                                        @Override
+                                                        public void onTick(long l) {
+                                                            long sec=l/1000;
+                                                            timestamp_skipper.setText("Skip to Previous day"+" in "+sec);
+                                                        }
+
+                                                        @Override
+                                                        public void onFinish() {
+                                                            timestamp_skipper.setVisibility(View.GONE);
+                                                            rstr(timestamp_comment);
+                                                        }
+                                                    };
+                                                    countDownTimerx.start();
+                                                    timestamp_skipper.setOnCloseIconClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View view) {
+
+                                                            timestamp_skipper.setVisibility(View.GONE);
+                                                            rstr(timestamp_comment);
+
+                                                        }
+                                                    });
+                                                    timestamp_skipper.setOnClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View view) {
+
+
+                                                            timestamp_skipper.setVisibility(View.GONE);
+                                                            if(countDownTimerx!=null)
+                                                            {
+                                                                countDownTimerx.cancel();
+                                                            }
+
+                                                            int yu=timestamp_comment.getAdapter_position();
+
+                                                            UserInfoDatabase.databaseWriteExecutor
+                                                                    .execute(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+
+                                                                            int scrollto=0;
+                                                                            for(int uj=yu;uj>=0;uj--)
+                                                                            {
+
+                                                                                Comment comment=testAdapter.commentListUnderHeadComment.get(uj);
+                                                                                if(comment.getTimestamp().equals(timestamp_comment.getTimestamp())==false
+                                                                                        &comment.getComment_type()!=Comment.NEWS_AD)
+                                                                                {
+                                                                                    scrollto=uj;
+                                                                                    break;
+                                                                                }
+
+                                                                            }
+
+                                                                            final int ku=scrollto;
+
+                                                                            TestGroup2.this.runOnUiThread(new Runnable() {
+                                                                                @Override
+                                                                                public void run() {
+
+                                                                                    Log.i("rushjdad","ku="+ku);
+                                                                                    comment_list.scrollToPosition(ku);
+                                                                                    rstr(timestamp_comment);
+
+                                                                                }
+                                                                            });
+
+                                                                        }
+                                                                    });
+
+                                                        }
+                                                    });
+
+                                                }
+                                            }
+
+                                        }
+                                    });
+
+                                }
+
+                            }
+
+
+
+
+                        }
+                    });
+
+
+        }
+
+
+    }
+
+    private void rstr(Comment current_timestamp_comment)
+    {
+
+        new CountDownTimer(10000,1000) {
+            @Override
+            public void onTick(long l) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                if(shownship_timestamps.containsKey(current_timestamp_comment.getTimestamp()))
+                {
+                    shownship_timestamps.remove(current_timestamp_comment.getTimestamp());
+                }
+            }
+        }.start();
+
+    }
+
+    public int findVisiblePosition(RecyclerView recyclerView) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            return ((LinearLayoutManager) layoutManager).findFirstVisibleItemPosition();
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+            int[] firstVisibleItems = ((StaggeredGridLayoutManager) layoutManager).findFirstVisibleItemPositions(null);
+            int firstVisibleItem = firstVisibleItems[0];
+            for (int tmp : firstVisibleItems) {
+                if (firstVisibleItem > tmp) {
+                    firstVisibleItem = tmp;
+                }
+            }
+            return firstVisibleItem;
+        }
+        throw new IllegalArgumentException("only support LinearLayoutManager and StaggeredGridLayoutManager");
+    }
+    public int findLastVisiblePosition(RecyclerView recyclerView) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            return ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+            int[] firstVisibleItems = ((StaggeredGridLayoutManager) layoutManager).findLastVisibleItemPositions(null);
+            int firstVisibleItem = firstVisibleItems[0];
+            for (int tmp : firstVisibleItems) {
+                if (firstVisibleItem > tmp) {
+                    firstVisibleItem = tmp;
+                }
+            }
+            return firstVisibleItem;
+        }
+        throw new IllegalArgumentException("only support LinearLayoutManager and StaggeredGridLayoutManager");
+    }
+
     AdLoader adLoader;
     private void getAds()
     {
@@ -1612,6 +1874,23 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                             if(newState==RecyclerView.SCROLL_STATE_IDLE)
                             {
                                 last_reading_pos=getLastVisibleItem(comment_list);
+                                if(current_timestamp_comment!=null)
+                                {
+                                    skipTimestampSH();
+                                }
+                            }
+                            else
+                            {
+
+                                if(timestamp_skipper!=null)
+                                {
+                                    timestamp_skipper.setVisibility(View.GONE);
+                                    if(countDownTimerx!=null)
+                                    {
+                                        countDownTimerx.cancel();
+                                    }
+                                }
+
                             }
 
                         }
@@ -1667,6 +1946,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
     }
 
+    private GoogleSignInClient mGoogleSignInClient;
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -1682,6 +1962,390 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
         }
 
         //getUIDs();
+
+
+    }
+
+
+    //the traditional intent sign in
+    ActivityResultLauncher<Intent> authLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        // There are no request codes
+                        Intent data = result.getData();
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                        try {
+                            // Google Sign In was successful, authenticate with Firebase
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            Log.i("onActivityResult", "firebaseAuthWithGoogle:" + account.getId());
+                            if(account!=null)
+                            {
+
+                                boolean nm=account.getGrantedScopes().contains(new Scope(DriveScopes.DRIVE_FILE));
+                                Log.i("onPostCreate","nm="+nm);
+                                if(recording_before_signin)
+                                {
+                                    RecordVN();
+                                }
+                                else
+                                {
+                                    deniedGoogleDriveScope();
+                                }
+
+                            }
+
+
+                        } catch (ApiException e) {
+                            // Google Sign In failed, update UI appropriately
+                            Log.i("onActivityResult", "Google sign in failed", e);
+                        }
+
+                    }
+                    else
+                    {
+                        deniedGoogleDriveScope();
+                    }
+                }
+            });
+    private void GoogleSignIn()
+    {
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .requestId()
+                .requestIdToken(getString(R.string.google_client_id))
+                .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                .build();
+
+        // Build a GoogleSignInClient with the options specified by gso.
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        authLauncher.launch(signInIntent);
+
+    }
+
+    boolean recording_before_signin=false;
+    @OnClick(R.id.vn_mic)
+    public void RecordVN()
+    {
+
+        recording_before_signin=true;
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if(account!=null)
+        {
+
+            boolean nm=account.getGrantedScopes().contains(new Scope(DriveScopes.DRIVE_FILE));
+            Log.i("RecordVN","nm="+nm);
+
+            if(nm==false)
+            {
+                deniedGoogleDriveScope();
+            }
+            else
+            {
+                RecordVNAudio();
+            }
+
+
+        }
+        else {
+            Log.i("RecordVN","account!=null "+(account!=null));
+
+            // [START config_signin]
+            // Configure Google Sign In
+            GoogleSignIn();
+
+
+        }
+
+    }
+
+    private MediaRecorder mRecorder;
+    String fileName="";
+    boolean recording=false;
+    File tempFile;
+    private void RecordVNAudio()
+    {
+
+        Log.i("RecordVNAudio","started");
+
+        Dexter.withContext(this)
+                .withPermissions(
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                ).withListener(new MultiplePermissionsListener() {
+                    @Override public void onPermissionsChecked(MultiplePermissionsReport report)
+                    {
+
+                        /* ... */
+                        if(report.areAllPermissionsGranted())
+                        {
+
+                            fileName= UUID.randomUUID().toString();
+                            Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
+                            LocalDateTime localDateTime=new LocalDateTime();
+                            fileName= localDateTime.millisOfDay().getAsText()+"";
+                            String jkl=bookieActivity.getActivity_title();
+                            jkl=jkl.replace("#","");
+                            jkl=jkl.replace("%","");
+                            jkl=jkl.replace("&","");
+                            jkl=jkl.replace("{","");
+                            jkl=jkl.replace("}","");
+                            jkl=jkl.replace("\\","");
+                            jkl=jkl.replace(" ","");
+                            jkl=jkl.replace("$","");
+                            jkl=jkl.replace(">","");
+                            jkl=jkl.replace("*","");
+                            jkl=jkl.replace("?","");
+                            jkl=jkl.replace("/","");
+                            jkl=jkl.replace("!","");
+                            jkl=jkl.replace("'","");
+                            jkl=jkl.replace('"'+"","");
+                            jkl=jkl.replace(":","");
+                            jkl=jkl.replace("@","");
+                            jkl=jkl.replace("+","");
+                            jkl=jkl.replace("|","");
+                            jkl=jkl.replace("=","");
+                            jkl=jkl.replace("’","");
+                            fileName=jkl;
+                            //getExternalStorageDirectory
+                            fileName= jkl;
+
+                            File dir=TestGroup2.this.getFilesDir();
+                            fileName=dir.getAbsolutePath()+"/"+jkl+".3gp";
+                            tempFile=new File(fileName);
+                            if(mRecorder==null)
+                            {
+                                // below method is used to initialize
+                                // the media recorder class
+                                mRecorder = new MediaRecorder();
+                                // below method is used to set the audio
+                                // source which we are using a mic.
+                                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                                mRecorder.setOutputFile(tempFile.getAbsolutePath());
+                            }
+
+                            if(recording)
+                            {
+                                recording=false;
+                                // below method will stop
+                                //the audio recording.
+                                mRecorder.stop();
+                                // below method will release
+                                // the media recorder class.
+                                mRecorder.release();
+                                mRecorder = null;
+                                if(new File(tempFile.getAbsolutePath()).exists())
+                                {
+                                    Log.i("RecordVNAudio","fileName.size="+new File(tempFile.getAbsolutePath()).length());
+                                    PlayLocalAudio();
+                                }
+                                else
+                                {
+                                    Log.i("RecordVNAudio","fileName does not exists");
+                                }
+                            }
+                            else
+                            {
+                                recording=true;
+
+                                Log.i("RecordVNAudio",fileName+" areAllPermissionsGranted");
+                                if(new File(fileName).exists())
+                                {
+                                    new File(fileName).delete();
+                                }
+
+                                try
+                                {
+
+
+                                    mRecorder.prepare();
+                                    mRecorder.start();
+
+                                }
+                                catch(Exception exception)
+                                {
+                                    Log.i("RecordVNAudio", "prepare() failed "+exception.getMessage());
+                                    // below method will stop
+                                    //the audio recording.
+                                    mRecorder = null;
+                                }
+
+
+
+                            }
+
+                        }
+                        else
+                        {
+
+                            Log.i("RecordVNAudio","not areAllPermissionsGranted");
+
+
+
+
+                        }
+
+                    }
+                    @Override public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions,
+                                                                             PermissionToken token) {
+                        /* ... */
+
+
+                    }
+
+                }).check();
+
+
+    }
+
+    MediaPlayer mPlayer;
+    boolean wasPlaying=false;
+    private void PlayLocalAudio()
+    {
+
+        if(tempFile!=null)
+        {
+
+            if(tempFile.exists())
+            {
+
+                mPlayer = new MediaPlayer();
+                try {
+                    mPlayer.setDataSource(tempFile.getAbsolutePath());
+                    mPlayer.prepare();
+                    mPlayer.start();
+                    wasPlaying=true;
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+
+    }
+
+
+    int paused_position=0;
+    private void PausePlayLocalAudio()
+    {
+
+        if(mPlayer!=null)
+        {
+            if(mPlayer.isPlaying())
+            {
+                mPlayer.pause();
+                paused_position=mPlayer.getCurrentPosition();
+            }
+        }
+
+    }
+    private void ResumePlayLocalAudio()
+    {
+
+        if(mPlayer!=null)
+        {
+            mPlayer.seekTo(paused_position);
+            mPlayer.start();
+        }
+
+    }
+    private void StopPlayLocalAudio()
+    {
+
+        if(mPlayer!=null)
+        {
+            if(mPlayer.isPlaying())
+            {
+                mPlayer.stop();
+            }
+            mPlayer.release();
+            mPlayer=null;
+        }
+
+    }
+
+    private void uploadAudio()
+    {
+
+        UserInfoDatabase.databaseWriteExecutor
+                .execute(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        int numOfIds = 4;
+                        GeneratedIds allIds = null;
+                        try {
+                            GoogleSignInAccount account =GoogleSignIn.getLastSignedInAccount(TestGroup2.this);
+                            GoogleAccountCredential credential=GoogleAccountCredential.usingOAuth2(TestGroup2.this,
+                                    Collections.singleton(DriveScopes.DRIVE_FILE));
+                            credential.setSelectedAccount(account.getAccount());
+                            Drive drive=new Drive.Builder(AndroidHttp
+                                    .newCompatibleTransport(),new GsonFactory(),credential)
+                                    .setApplicationName(getResources().getString(R.string.app_name))
+                                    .build();
+
+                            allIds = drive.files().generateIds()
+                                    .setSpace("drive").setCount(numOfIds).execute();
+
+                            List<String> generatedFileIds = allIds.getIds();
+
+                            for(String jn:generatedFileIds)
+                            {
+                                Log.i("RecordVNAudio","jn="+jn);
+                            }
+
+
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                });
+
+    }
+
+    private void deniedGoogleDriveScope()
+    {
+
+        new MaterialDialog.Builder(this)
+                .title("We need access to google drive")
+                .content("We store you voice notes on your google drive " +
+                        "in a Bookie/Audio/Convo Title" +
+                        " in order to back up, organize and track files used on the Bookie platform for later use " +
+                        "and to delete easily file related to certain organizations/groups or topics")
+                .positiveText("Sign In")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        GoogleSignIn();
+
+                    }
+                })
+                .negativeText("Never mind")
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        recording_before_signin=false;
+
+                    }
+                })
+                .cancelable(false)
+                .show();
 
     }
 
@@ -1728,6 +2392,27 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
         }
 
+        if(wasPlaying)
+        {
+            ResumePlayLocalAudio();
+        }
+
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        PausePlayLocalAudio();
+
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        StopPlayLocalAudio();
     }
 
     ArrayList<NewsFactsMedia> newsFactsMediaArrayList=new ArrayList<NewsFactsMedia>();
@@ -2003,5 +2688,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
     @BindView(R.id.bubbleEmitter)
     BubbleEmitterView bubbleEmitterView;
+    @BindView(R.id.timestamp_skipper)
+    Chip timestamp_skipper;
 
 }

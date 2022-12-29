@@ -1,6 +1,8 @@
 package brainwind.letstalksample.features.letstalk.fragments.item;
 
 
+import android.content.Context;
+
 import com.google.android.exoplayer2.util.Log;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -12,6 +14,8 @@ import java.util.Date;
 import java.util.Map;
 
 import brainwind.letstalksample.data.database.OrgFields;
+import brainwind.letstalksample.data.memory.Memory;
+import brainwind.letstalksample.data.utilities.TimeUtilities;
 
 public class Comment
 {
@@ -1276,6 +1280,37 @@ public class Comment
 
     public void setAdapter_position(int adapter_position) {
         this.adapter_position = adapter_position;
+    }
+
+    public String getTimeLabel(Context context)
+    {
+        Memory memory=new Memory(context);
+        String jnm=memory.getString(OrgFields.SERVER_TIME_OFFSET);
+
+        if(jnm.isEmpty()==false)
+        {
+
+            long localtimeoffset=Long.parseLong(jnm);
+            long estimatedServerTimeMs = System.currentTimeMillis() + localtimeoffset;
+
+            org.joda.time.LocalDateTime localDateTime
+                    =new org.joda.time.LocalDateTime(estimatedServerTimeMs);
+            android.util.Log.w("jskasd", "offset="+localtimeoffset
+                    +" estimatedServerTimeMs="+estimatedServerTimeMs
+                    +" "+localDateTime.getDayOfMonth()+" "+localDateTime.getMonthOfYear()
+                    +" "+localDateTime.getYear()
+                    +" "+String.valueOf(localtimeoffset));
+
+            String timelabel= TimeUtilities.getTimeLabel(localDateTime,this);
+            Log.i("tinsja","timelabel="+timelabel+" "+localDateTime.getDayOfMonth()
+                    +" "+localDateTime.getMonthOfYear()+" "+localDateTime.getYear());
+            return timelabel;
+        }
+        else
+        {
+            return "";
+        }
+
     }
 
 

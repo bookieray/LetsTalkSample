@@ -43,5 +43,6 @@
     <string name="secondary_domain">https://bookie.remould.co.za/</string>
     <string name="heading_size">16dp</string>
     <string name="description_size">14dp</string>
+    <string name="google_web_client_auth">484443541746-f8dscr0opgbthndteq1c3p8thv82jbm9.apps.googleusercontent.com</string>
 
 </resources>
