@@ -160,6 +160,8 @@ import brainwind.letstalksample.features.letstalk.fragments.item.TMDay;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
+import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconTextView;
 
 public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNavigation {
@@ -560,7 +562,83 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
         HeadCommentIndex();
         getTimestampsForHeadComment(commentx);
+        getTimestampsForVoiceNotesForHeadComment(commentx);
 
+    }
+
+    @BindView(R.id.comment_list_vn)
+    RecyclerView comment_list_vn;
+    private void getTimestampsForVoiceNotesForHeadComment(Comment commentx)
+    {
+
+        tabs.setVisibility(View.VISIBLE);
+        final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        String qtxt=headcomment.getComment_id();
+
+        if(comment_filter.getSelectedItemPosition()==0)
+        {
+            //All
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES+"_vn";
+        }
+        else if(comment_filter.getSelectedItemPosition()==1)
+        {
+            //Agree
+            qtxt=headcomment.getComment_id()+"_"+Comment.AGREES+"_vn";
+        }
+        else if(comment_filter.getSelectedItemPosition()==2)
+        {
+            //Disagree
+            qtxt=headcomment.getComment_id()+"_"+Comment.DISAGREES+"_vn";
+        }
+        else if(comment_filter.getSelectedItemPosition()==3)
+        {
+            //Question
+            qtxt=headcomment.getComment_id()+"_"+Comment.QUESTION+"_vn";
+        }
+        else if(comment_filter.getSelectedItemPosition()==4)
+        {
+            //Answers
+            qtxt=headcomment.getComment_id()+"_"+Comment.ANSWER+"_vn";
+        }
+
+        //testing
+        qtxt=qtxt.replace("_vn","");
+
+        initiaLizeCommentVCnotesList();
+
+        mDatabase.child(qtxt)
+                .get()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+
+
+                    }
+                })
+                .addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                    @Override
+                    public void onSuccess(DataSnapshot dataSnapshot) {
+
+
+
+                    }
+                });
+
+
+    }
+
+    TestAdapter vcNotetestAdapter;
+    private void initiaLizeCommentVCnotesList()
+    {
+
+        if(vcNotetestAdapter==null)
+        {
+            vcNotetestAdapter=new TestAdapter(this);
+            //comment_list.setLayoutManager(new LinearLayoutManager(getContext()));
+            comment_list_vn.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL));
+            comment_list_vn.setAdapter(vcNotetestAdapter);
+        }
 
     }
 
@@ -899,9 +977,13 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
             Log.i("getTmstmpsFrHadCmmnt","timetsmaps.size="+timetsmaps.size()+" "+tmDays.size());
             testAdapter.commentListUnderHeadComment.clear();
+            vcNotetestAdapter.commentListUnderHeadComment.clear();
             testAdapter.commentListUnderHeadComment.addAll(timetsmaps);
+            vcNotetestAdapter.commentListUnderHeadComment.addAll(timetsmaps);
             testAdapter.is_loading=false;
             testAdapter.notifyDataSetChanged();
+            vcNotetestAdapter.is_loading=false;
+            vcNotetestAdapter.notifyDataSetChanged();
 
             if(timetsmaps.size()>0)
             {
@@ -1218,7 +1300,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
         this.current_timestamp_comment=timestamp_comment;
         DOWNLOAD_OP=HEAD_COMMENT_COMMENTS;
         comment_filter.setVisibility(View.VISIBLE);
-        tabs.setVisibility(View.VISIBLE);
+
         busy=true;
         initiaLizeCommentList();
         if(OP==PREV_C)
@@ -1507,6 +1589,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                             {
                                 num_people_read.setText(NumUtils.getAbbreviatedNum(testAdapter.getActualNumberofComments())+" comments");
                             }
+
 
 
 
@@ -1973,7 +2056,37 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
         }
 
         //getUIDs();
+        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if(tab.getPosition()==1)
+                {
+                    stopRecording();
+                    StopPlayLocalAudio();
+                    record_view.setVisibility(View.GONE);
+                    voice_notes_area.setVisibility(View.VISIBLE);
+                    comment_list.setVisibility(View.GONE);
+                    typing_area.setVisibility(View.VISIBLE);
+                }
+                else
+                {
+                    voice_notes_area.setVisibility(View.GONE);
+                    comment_list.setVisibility(View.VISIBLE);
+                    typing_area.setVisibility(View.VISIBLE);
+                }
+            }
 
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        initTypingAreaViews();
 
     }
 
@@ -2045,6 +2158,7 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     public void RecordVN()
     {
 
+        typing_area.setVisibility(View.GONE);
         playing_time.setVisibility(View.INVISIBLE);
         timer.setVisibility(View.VISIBLE);
         recording_before_signin=true;
@@ -2374,6 +2488,8 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     void Delete()
     {
 
+        slider.setProgress(0);
+        typing_area.setVisibility(View.VISIBLE);
         record_view.setVisibility(View.INVISIBLE);
         stopRecording();
         recording=false;
@@ -2561,6 +2677,21 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
 
     }
 
+    @BindView(R.id.voice_notes_area)
+    RelativeLayout voice_notes_area;
+    //done recording
+    @OnClick(R.id.done)
+    void DoneRec()
+    {
+
+        stopRecording();
+        StopPlayLocalAudio();
+        record_view.setVisibility(View.GONE);
+        voice_notes_area.setVisibility(View.VISIBLE);
+        tabs.selectTab(tabs.getTabAt(1));
+        comment_list.setVisibility(View.GONE);
+
+    }
 
     int paused_position=0;
     private void PausePlayLocalAudio()
@@ -3023,5 +3154,28 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     BubbleEmitterView bubbleEmitterView;
     @BindView(R.id.timestamp_skipper)
     Chip timestamp_skipper;
+
+    @BindView(R.id.rootView)
+    RelativeLayout rootView;
+    private void initTypingAreaViews()
+    {
+
+        EmojIconActions emojIcon=new EmojIconActions(this,rootView,emojicon_edit_text,emoji_button);
+        emojIcon.ShowEmojIcon();
+
+
+    }
+    //creating a text based comment
+    @BindView(R.id.emojicon_edit_text)
+    EmojiconEditText emojicon_edit_text;
+    @BindView(R.id.emoji_button)
+    ImageView emoji_button;
+
+
+    //creating a image comment
+
+    //creating a video comment
+
+
 
 }
