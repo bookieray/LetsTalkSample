@@ -119,17 +119,18 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
                     , parent, false);
             return new TestHolder(view);
         }
-        else if (viewType == Comment.AGREES) {
+        else if (viewType == Comment.AGREES||viewType==Comment.AGREES_TEXT_ONLY) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.agree_comment
                     , parent, false);
             return new TestHolder(view);
         }
-        else if (viewType == Comment.DISAGREES) {
+        else if (viewType == Comment.DISAGREES||viewType==Comment.DISAGREES_TEXT_ONLY) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.disagree_comment
                     , parent, false);
             return new TestHolder(view);
         }
-        else if (viewType == Comment.QUESTION||viewType==Comment.ANSWER) {
+        else if (viewType == Comment.QUESTION||viewType==Comment.ANSWER||viewType==Comment.QUESTION_TEXT_ONLY
+        ||viewType==Comment.ANSWER_TEXT_ONLY) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.question_comment
                     , parent, false);
             return new TestHolder(view);
@@ -332,13 +333,13 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestHolder>
             else if(getItemViewType(position)==Comment.NEWS_AD)
             {
 
-            /*
-                    //news views
-                ImageView news_bookie_logo;
-                TextView mediatype1;
-                TextView news_title;
-                TextView lead_label;
-             */
+                /*
+                        //news views
+                    ImageView news_bookie_logo;
+                    TextView mediatype1;
+                    TextView news_title;
+                    TextView lead_label;
+                 */
                 Log.i("getNewsSuggestions","onBindViewHolder position="+position
                         +" newsFactsMediaArrayList.size()="+newsFactsMediaArrayList.size());
 

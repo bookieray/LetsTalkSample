@@ -7,18 +7,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -29,11 +22,10 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
@@ -41,8 +33,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -55,20 +47,27 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.airbnb.lottie.LottieAnimationView;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.arthurivanets.bottomsheets.BaseBottomSheet;
+import com.arthurivanets.bottomsheets.config.BaseConfig;
+import com.arthurivanets.bottomsheets.config.Config;
 import com.avatarfirst.avatargenlib.AvatarGenerator;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
@@ -78,6 +77,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.SignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -100,18 +100,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.auth.User;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.multi.DialogOnAnyDeniedMultiplePermissionsListener;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-import com.karumi.dexter.listener.single.PermissionListener;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
 import com.nex3z.notificationbadge.NotificationBadge;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener;
 import com.scwang.wave.MultiWaveHeader;
 
 import org.firezenk.bubbleemitter.BubbleEmitterView;
@@ -128,13 +126,12 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -146,20 +143,20 @@ import brainwind.letstalksample.R;
 import brainwind.letstalksample.bookie_activity.BookieActivity;
 import brainwind.letstalksample.data.database.CloudWorker;
 import brainwind.letstalksample.data.database.OrgFields;
+import brainwind.letstalksample.data.database.user.user_info.UserInfo;
 import brainwind.letstalksample.data.database.user.user_info.UserInfoDatabase;
-import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.NumUtils;
-import brainwind.letstalksample.features.letstalk.fragments.AllTopicsForConvo;
-import brainwind.letstalksample.features.letstalk.fragments.CurrentTopicForConvo;
-import brainwind.letstalksample.features.letstalk.fragments.NewsMedia;
 import brainwind.letstalksample.features.letstalk.fragments.adapters.TestAdapter;
 import brainwind.letstalksample.features.letstalk.fragments.item.Comment;
 import brainwind.letstalksample.features.letstalk.fragments.item.CommentDate;
+import brainwind.letstalksample.features.letstalk.fragments.item.MediaItemWebSearch;
 import brainwind.letstalksample.features.letstalk.fragments.item.NewsFactsMedia;
 import brainwind.letstalksample.features.letstalk.fragments.item.TMDay;
+import brainwind.letstalksample.utils.ImageUtil;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconTextView;
@@ -227,6 +224,8 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
                             getNewsSuggestions();
                             showConvo();
                             LoadHeadComments();
+                            searchByImagesOnWeb();
+                            searchVideosOnWeb();
                         }
 
 
@@ -2036,11 +2035,32 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
         countDownTimer.start();
 
 
+
     }
 
     @BindView(R.id.record_view)
     FrameLayout record_view;
     private GoogleSignInClient mGoogleSignInClient;
+    ActivityResultLauncher<Intent> fileSelector = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    Log.i("fileSelector","started "+result.getResultCode()+" "+Activity.RESULT_OK);
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        // There are no request codes
+                        Intent data = result.getData();
+                        returnUri = data.getData();
+                        String mimeType = getContentResolver().getType(returnUri);
+                        Log.i("fileSelector","mimeType="+mimeType);
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+            });
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -2087,6 +2107,11 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
             }
         });
         initTypingAreaViews();
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_PICK);
+        //fileSelector.launch(intent);
+
 
     }
 
@@ -2869,14 +2894,20 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
         super.onPause();
 
         PausePlayLocalAudio();
-
-
+        if(youTubePlayer!=null)
+        {
+            youTubePlayer.pause();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         StopPlayLocalAudio();
+        if(youTubePlayerView!=null)
+        {
+            youTubePlayerView.release();
+        }
     }
 
     ArrayList<NewsFactsMedia> newsFactsMediaArrayList=new ArrayList<NewsFactsMedia>();
@@ -3171,11 +3202,1401 @@ public class TestGroup2 extends AppCompatActivity implements CommentTimeStampNav
     @BindView(R.id.emoji_button)
     ImageView emoji_button;
 
+    //file being sent
+    String fileUrlBeingSent="";
+    int current_comment_type=Comment.AGREES;
+    @OnClick(R.id.send_button)
+    void SendComment()
+    {
+
+        String commentText=emojicon_edit_text.getText().toString();
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null)
+        {
+
+            if(commentText.trim().isEmpty()&returnUri==null&fileUrlBeingSent.isEmpty())
+            {
+                //it is only a text comment
+                Toast.makeText(this, "Say something", Toast.LENGTH_SHORT).show();
+            }
+            else if(commentText.trim().isEmpty()==false&returnUri==null&fileUrlBeingSent.isEmpty())
+            {
+
+                //send the text comment
+                checkIfGaveUserInfo();
+
+            }
+            else
+            {
+
+                //send a file from gallery
+                if(returnUri!=null)
+                {
+                    checkIfGaveUserInfo();
+                }
+                else if(fileUrlBeingSent.trim().isEmpty()==false)
+                {
+                    checkIfGaveUserInfo();
+                }
+
+            }
+        }
+        else
+        {
+
+            new MaterialDialog.Builder(this)
+                    .title("You have to sign In")
+                    .positiveText("Sign In")
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            Intent intent=new Intent(TestGroup2.this, SignInAccount.class);
+                            intent.putExtra(OrgFields.CONVERSATION_ID,conversation_id);
+                            startActivity(intent);
+
+                        }
+                    })
+                    .negativeText("Nope")
+                    .cancelable(false)
+                    .show();
+
+        }
+
+    }
+
+    UserInfo currentUserInfo=null;
+    private void checkIfGaveUserInfo()
+    {
+
+        UserInfoDatabase.databaseWriteExecutor
+                .execute(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
+                        final UserInfo userInfo=UserInfoDatabase.getDatabase(TestGroup2.this)
+                                .userInfoDao().getUserInfo(firebaseUser.getUid());
+                        currentUserInfo=userInfo;
+                        if(userInfo!=null)
+                        {
+
+                            TestGroup2.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    String commentText=emojicon_edit_text.getText().toString();
+                                    if(commentText.trim().isEmpty()&returnUri==null&fileUrlBeingSent.isEmpty())
+                                    {
+                                        //it is only a text comment
+                                        Toast.makeText(TestGroup2.this, "Say something", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else
+                                    {
+
+                                        AskIfNewTopicOrNewTopic();
+
+                                    }
+
+
+                                }
+                            });
+
+                        }
+
+
+                    }
+                });
+
+    }
+
+    boolean is_new_topic=true;
+    private void AskIfNewTopicOrNewTopic()
+    {
+
+
+        if(headcomment!=null)
+        {
+
+            String content="";
+            if(headcomment.getComment().length()>30)
+            {
+                content="responding to "+headcomment.getCommentator_name().trim()
+                        +" <b><i>'"+headcomment.getComment().substring(0,29)+"...'</i></b> or <b>new Topic?</b>";
+            }
+            else
+            {
+                content="responding to "+headcomment.getCommentator_name().trim()
+                        +" <b><i>'"+headcomment.getComment()+"'</i></b> or <b>new Topic?</b>";
+            }
+
+            new MaterialDialog.Builder(this)
+                    .title("New Topic or Responding to head comment")
+                    .content(Html.fromHtml(content))
+                    .cancelable(false)
+                    .positiveText("New Topic")
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            is_new_topic=true;
+                            AskCommentType();
+
+                        }
+                    })
+                    .negativeText("Responding to "+headcomment.getCommentator_name())
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                            is_new_topic=false;
+                            AskCommentType();
+
+                        }
+                    })
+                    .neutralText("Never mind")
+                    .show();
+
+        }
+        else
+        {
+            AskCommentType();
+        }
+
+    }
+
+    private void AskCommentType()
+    {
+
+        if(bookieActivity!=null)
+        {
+
+            String content="";
+            if(bookieActivity.getActivity_title().length()>70)
+            {
+                content="how do you respond to "+" <b><i>'"+bookieActivity.getActivity_title().substring(0,29)+"...'</i></b>?";
+            }
+            else
+            {
+                content="how do you respond to "+" <b><i>'"+bookieActivity.getActivity_title()+"'</i></b>?";
+            }
+
+            new MaterialDialog.Builder(this)
+                    .title("how do you respond to convo?")
+                    .content(Html.fromHtml(content))
+                    .items(new String[]{"Agree","Disagree","Question","Answer"})
+                    .itemsColor(getResources().getColor(R.color.red))
+                    .itemsCallback(new MaterialDialog.ListCallback() {
+                        @Override
+                        public void onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+
+                            if(position==0)
+                            {
+                                current_comment_type=Comment.AGREES;
+                            }
+                            if(position==1)
+                            {
+                                current_comment_type=Comment.DISAGREES;
+                            }
+                            if(position==2)
+                            {
+                                current_comment_type=Comment.QUESTION;
+                            }
+                            if(position==3)
+                            {
+                                current_comment_type=Comment.ANSWER;
+                            }
+
+                            if(returnUri!=null)
+                            {
+
+                            }
+                            else if(fileUrlBeingSent.trim().isEmpty()==false)
+                            {
+
+                            }
+                            else
+                            {
+                                sendTextComment(currentUserInfo);
+                            }
+
+                        }
+                    })
+                    .cancelable(false)
+                    .positiveText("Never mind")
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+
+
+                        }
+                    })
+                    .show();
+
+        }
+
+    }
+
+    private void setWhoSentComment(UserInfo userInfo, Map<String, Object> comment_values)
+    {
+
+        FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
+        comment_values.put(OrgFields.UID,firebaseUser.getUid());
+        comment_values.put(OrgFields.USER_FIRSTNAME,userInfo.firstname);
+        comment_values.put(OrgFields.USER_LASTNAME,userInfo.lastname);
+        comment_values.put(OrgFields.COMMENTATER_NAME,userInfo.firstname+" "+userInfo.lastname);
+        if(userInfo.profile_path!=null)
+        {
+            comment_values.put(OrgFields.USER_PROFILE_PICTURE,userInfo.profile_path);
+            comment_values.put(OrgFields.COMMENTER_PROFILE_IMAGE,userInfo.profile_path);
+        }
+
+    }
+    private void setWhoCreatedConvo(Map<String, Object> comment_values)
+    {
+
+        if(bookieActivity!=null)
+        {
+
+            if(bookieActivity.getOrgid().trim().isEmpty()==false)
+            {
+                comment_values.put(OrgFields.ORGID,bookieActivity.getOrgid());
+                comment_values.put(OrgFields.IS_ORG_CREATED,true);
+            }
+            else
+            {
+                comment_values.put(OrgFields.ORGID,bookieActivity.getAdmin_uid());
+                comment_values.put(OrgFields.IS_ORG_CREATED,false);
+            }
+
+
+        }
+
+    }
+
+
+    Uri returnUri=null;
+    private void setCommentDetails(String commentText,Map<String, Object> comment_values)
+    {
+
+        //send a file from gallery
+        boolean audiofile=false;
+        if(tempFile!=null)
+        {
+            audiofile=tempFile.exists();
+        }
+
+        if(audiofile)
+        {
+
+            if(current_comment_type==Comment.AGREES)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_AUDIO);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_AUDIO,Comment.AGREES});
+            }
+            if(current_comment_type==Comment.DISAGREES)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_AUDIO);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_AUDIO,Comment.DISAGREES});
+            }
+            if(current_comment_type==Comment.QUESTION)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_AUDIO);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_AUDIO,Comment.QUESTION});
+            }
+            if(current_comment_type==Comment.ANSWER)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_AUDIO);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_AUDIO,Comment.ANSWER});
+            }
+
+        }
+        else if(returnUri!=null)
+        {
+
+            String mimeType = getContentResolver().getType(returnUri);
+            boolean isimage=mimeType.trim().indexOf("image/")==0;
+            boolean isvideo=mimeType.trim().indexOf("video/")==0;
+            if(isimage)
+            {
+
+                if(current_comment_type==Comment.AGREES)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_IMAGE_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_IMAGE_ONLY,Comment.AGREES});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_IMAGE_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_IMAGE_TEXT_ONLY,Comment.AGREES});
+                    }
+                }
+                if(current_comment_type==Comment.DISAGREES)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_IMAGE_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_IMAGE_ONLY,Comment.DISAGREES});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_IMAGE_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_IMAGE_TEXT_ONLY,Comment.DISAGREES});
+                    }
+                }
+                if(current_comment_type==Comment.QUESTION)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_IMAGE_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_IMAGE_ONLY,Comment.QUESTION});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_IMAGE_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_IMAGE_TEXT_ONLY,Comment.QUESTION});
+                    }
+                }
+                if(current_comment_type==Comment.ANSWER)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_IMAGE_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_IMAGE_ONLY,Comment.ANSWER});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_IMAGE_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_IMAGE_TEXT_ONLY,Comment.QUESTION});
+                    }
+                }
+
+            }
+            else if(isvideo)
+            {
+
+                if(current_comment_type==Comment.AGREES)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_VIDEO_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_VIDEO_ONLY,Comment.AGREES});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_VIDEO_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_VIDEO_TEXT_ONLY,Comment.AGREES});
+                    }
+                }
+                if(current_comment_type==Comment.DISAGREES)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_VIDEO_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_VIDEO_ONLY,Comment.DISAGREES});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_VIDEO_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_VIDEO_TEXT_ONLY,Comment.DISAGREES});
+                    }
+                }
+                if(current_comment_type==Comment.QUESTION)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_VIDEO_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_VIDEO_ONLY,Comment.QUESTION});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_VIDEO_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_VIDEO_TEXT_ONLY,Comment.QUESTION});
+                    }
+                }
+                if(current_comment_type==Comment.ANSWER)
+                {
+                    if(commentText.trim().isEmpty())
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_VIDEO_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_VIDEO_ONLY,Comment.ANSWER});
+                    }
+                    else
+                    {
+                        comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_VIDEO_TEXT_ONLY);
+                        comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_VIDEO_TEXT_ONLY,Comment.QUESTION});
+                    }
+                }
+
+            }
+
+
+
+        }
+        else if(fileUrlBeingSent.trim().isEmpty()==false)
+        {
+
+        }
+        else if(commentText.trim().isEmpty()==false&returnUri==null&fileUrlBeingSent.isEmpty())
+        {
+
+            //send the text comment
+            if(current_comment_type==Comment.AGREES)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.AGREES_TEXT_ONLY);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.AGREES_TEXT_ONLY,Comment.AGREES});
+            }
+            if(current_comment_type==Comment.DISAGREES)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.DISAGREES_TEXT_ONLY);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.DISAGREES_TEXT_ONLY,Comment.DISAGREES});
+            }
+            if(current_comment_type==Comment.QUESTION)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.QUESTION_TEXT_ONLY);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.QUESTION_TEXT_ONLY,Comment.QUESTION});
+            }
+            if(current_comment_type==Comment.ANSWER)
+            {
+                comment_values.put(OrgFields.COMMENT_TYPE,Comment.ANSWER_TEXT_ONLY);
+                comment_values.put(OrgFields.COMMENT_TYPES,new int[]{Comment.ANSWER_TEXT_ONLY,Comment.ANSWER});
+            }
+
+        }
+
+
+
+    }
+    private void sendTextComment(UserInfo userInfo)
+    {
+
+        String commentText=emojicon_edit_text.getText().toString();
+        Map<String, Object> comment_values = new HashMap<>();
+        setWhoSentComment(userInfo,comment_values);
+        setWhoCreatedConvo(comment_values);
+        setCommentDetails(commentText,comment_values);
+
+    }
 
     //creating a image comment
 
     //creating a video comment
 
+    Spinner mediatypes_choosing_files;
+    TabLayout media_source_menu;
+    private MediaItemAdapter mediaItemAdapter;
+    RecyclerView media_list;
+    ProgressBar progress_bar_loading_head_comment;
+    BaseBottomSheet bottomSheet;
+    com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView youTubePlayerView;
+    YouTubePlayer youTubePlayer;
+    LinearLayout video_preview_menu;
+    FloatingActionButton video_next_item_preview;
+    FloatingActionButton video_cancel_preview;
+    @OnClick(R.id.attach_media_button)
+    void onAttachMedia()
+    {
 
+        emojicon_edit_text.setHint("What's your take?");
+        preview_area.setVisibility(View.GONE);
+        bottomSheet = new SimpleCustomBottomSheet(this);
+        bottomSheet.show();
+
+        FloatingActionButton close_button_media_dialog=(FloatingActionButton) bottomSheet.findViewById(R.id.close_button_media_dialog);
+        video_preview_menu=(LinearLayout) bottomSheet.findViewById(R.id.video_preview_menu);
+        video_cancel_preview=(FloatingActionButton) bottomSheet.findViewById(R.id.video_cancel_preview);
+        video_next_item_preview=(FloatingActionButton) bottomSheet.findViewById(R.id.video_next_item_preview);
+        close_button_media_dialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheet.dismiss();
+            }
+        });
+
+        progress_bar_loading_head_comment=(ProgressBar) bottomSheet.findViewById(R.id.progress_bar_loading_head_comment);
+        media_source_menu=(TabLayout) bottomSheet.findViewById(R.id.media_source_menu);
+        media_source_menu.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+
+                mediaItemAdapter.notifyDataSetChanged();
+                if(tab.getPosition()==0)
+                {
+                    if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+                    {
+                        searchByImagesOnWeb();
+                    }
+                    else
+                    {
+                        searchVideosOnWeb();
+                    }
+                }
+                else
+                {
+
+                    if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+                    {
+
+                        searchByImagesOnGoogleDrive();
+                    }
+                    else
+                    {
+                        searchVideosOnGoogleDrive();
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        media_list=(RecyclerView) bottomSheet.findViewById(R.id.media_list);
+        if(mediaItemAdapter==null)
+        {
+            mediaItemAdapter=new MediaItemAdapter();
+        }
+        media_list.setLayoutManager(new LinearLayoutManager(this));
+        media_list.setAdapter(mediaItemAdapter);
+        mediatypes_choosing_files=(Spinner) bottomSheet.findViewById(R.id.mediatypes_choosing_files);
+        mediatypes_choosing_files.setVisibility(View.INVISIBLE);
+        mediatypes_choosing_files.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if(media_source_menu.getSelectedTabPosition()==0)
+                {
+                    if(i==0)
+                    {
+                        searchByImagesOnWeb();
+                    }
+                    else
+                    {
+                        searchVideosOnWeb();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        TextView convo_title=(TextView) bottomSheet.findViewById(R.id.convo_title);
+        convo_title.setText(bookieActivity.getActivity_title());
+
+        youTubePlayerView = (com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView)findViewById(R.id.youtube_player_view);
+        getLifecycle().addObserver(youTubePlayerView);
+
+        youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
+            @Override
+            public void onReady(@NonNull YouTubePlayer youTubePlayerx) {
+                super.onReady(youTubePlayerx);
+
+                youTubePlayer=youTubePlayerx;
+
+            }
+
+            @Override
+            public void onVideoId(@NonNull YouTubePlayer youTubePlayer, @NonNull String videoId) {
+                super.onVideoId(youTubePlayer, videoId);
+                video_preview_menu.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onStateChange(@NonNull YouTubePlayer youTubePlayer, @NonNull PlayerConstants.PlayerState state) {
+                super.onStateChange(youTubePlayer, state);
+
+                if(state== PlayerConstants.PlayerState.PLAYING)
+                {
+
+                }
+
+            }
+        });
+
+        video_cancel_preview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                CancelVideoPreview();
+
+            }
+        });
+        video_next_item_preview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                nextVideoItemMediaWeb();
+
+            }
+        });
+        searchByImagesOnWeb();
+
+
+    }
+
+    @BindView(R.id.cancel_preview)
+    FloatingActionButton cancel_preview;
+    @BindView(R.id.next_item_preview)
+    FloatingActionButton next_item_preview;
+
+
+    int start=0;
+    int video_start=0;
+
+    //Searching the web
+    private void searchByImagesOnWeb()
+    {
+
+        boolean images=true;
+        if(mediatypes_choosing_files!=null)
+        {
+           if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+           {
+               images=true;
+           }
+           else
+           {
+               images=false;
+           }
+        }
+        if(images&mediaItemImagesWebSearchList_web.size()>0)
+        {
+
+            if(mediaItemAdapter!=null)
+            {
+                mediaItemAdapter.use_web_source=true;
+                mediaItemAdapter.notifyDataSetChanged();
+                mediatypes_choosing_files.setVisibility(View.VISIBLE);
+                Log.i("searchingimagesweb_","s1 "+mediaItemImagesWebSearchList_web.size());
+            }
+
+        }
+        else
+        {
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            queue.cancelAll("searchingimagesweb_"+start);
+            String term=bookieActivity.getActivity_title().toString().trim().toLowerCase();
+            String url="https://www.google.com/search?q="+term+"&tbm=isch";
+            if(start<10)
+            {
+                url="https://www.google.com/search?q="+term+"&tbm=isch";
+            }
+            else
+            {
+                url="https://www.google.com/search?q="+term+"&tbm=isch&start="+start;
+            }
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+
+                            Log.i("searchingimagesweb","onResponse");
+                            Document doc = Jsoup.parse(response);
+                            Elements body=doc.getElementsByTag("body");
+                            if(body!=null)
+                            {
+
+                                if(body.isEmpty()==false)
+                                {
+
+                                    Element body_1=body.get(0);
+                                    Elements images=body_1.select("img[data-src]");
+                                    for(Element image : images)
+                                    {
+
+                                        if(image.hasAttr("alt")&image.hasAttr("data-src"))
+                                        {
+
+                                            String alt=image.attr("alt");
+                                            if(alt.trim().isEmpty()==false)
+                                            {
+
+                                                String image_link=image.attr("data-src");
+                                                String image_desc=image.attr("alt");
+                                                MediaItemWebSearch mediaItemWebSearch=new MediaItemWebSearch();
+                                                mediaItemWebSearch.setImage(true);
+                                                mediaItemWebSearch.setHeading(image_desc);
+                                                mediaItemWebSearch.setLink(image_link);
+                                                Log.i("searchingimagesweb",image_link);
+                                                mediaItemImagesWebSearchList_web.add(mediaItemWebSearch);
+
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                    if(mediaItemAdapter!=null)
+                                    {
+                                        mediaItemAdapter.use_web_source=true;
+                                        mediaItemAdapter.notifyDataSetChanged();
+                                        if(mediatypes_choosing_files!=null)
+                                        {
+                                            mediatypes_choosing_files.setVisibility(View.VISIBLE);
+                                        }
+
+
+                                    }
+
+
+
+                                }
+
+                            }
+
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                    Log.i("searchingimagesweb","VolleyError error="+error.getMessage());
+
+
+                }
+            });
+            stringRequest.setTag("searchingimagesweb_"+start);
+            queue.add(stringRequest);
+
+        }
+
+    }
+
+    private static final String PAGING = "PAGING";
+    private void searchVideosOnWeb()
+    {
+
+        boolean videos=true;
+        if(mediatypes_choosing_files!=null)
+        {
+            if(mediatypes_choosing_files.getSelectedItemPosition()==1)
+            {
+                videos=true;
+            }
+            else
+            {
+                videos=false;
+            }
+        }
+
+        if(videos&mediaItemVideosWebSearchList_web.size()>0)
+        {
+
+            if(mediaItemAdapter!=null)
+            {
+                mediaItemAdapter.use_web_source=true;
+                mediaItemAdapter.notifyDataSetChanged();
+                mediatypes_choosing_files.setVisibility(View.VISIBLE);
+                Log.i("searchingvideosweb_","s1 "+mediaItemVideosWebSearchList_web.size()
+                        +" "+mediaItemAdapter.getItemCount());
+            }
+
+        }
+        else
+        {
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            queue.cancelAll("searchingvideosweb_"+video_start);
+            queue.cancelAll(PAGING);
+
+            String term=bookieActivity.getActivity_title().toString().trim().toLowerCase();
+            // Instantiate the RequestQueue.
+            String url="https://www.google.com/search?q=youtube "+term+"&tbm=vid&start="+video_start;
+
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            // Display the first 500 characters of the response string.
+                            //Log.i("lxksfa","Response is: " + response.substring(0, 500));
+                            Log.i("searchingvideosweb_","got the response");
+                            Document doc = Jsoup.parse(response);
+                            Elements body=doc.getElementsByTag("body");
+
+                            if(body!=null)
+                            {
+                                if(body.isEmpty()==false)
+                                {
+
+                                    Log.i("searchingvideosweb_","body is not null ");
+                                    Element body_1=body.get(0);
+
+                                    Elements links = body_1.getElementsByTag("a");
+
+                                    //Log.i("lxksfa","body="+body.html());
+
+                                    Log.i("searchingvideosweb_","videos isEmpty="
+                                            +links.isEmpty()+" "+links.size());
+
+                                    loadLinks(links,false);
+
+
+
+
+
+                                }
+
+                            }
+
+
+
+
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                    Log.i("searchingvideosweb_",error.getMessage());
+
+                }
+            });
+            stringRequest.setTag("searchingvideosweb_"+video_start);
+            // Add the request to the RequestQueue.
+            queue.add(stringRequest);
+
+        }
+
+
+
+    }
+    private void loadLinks(Elements links,boolean loadOnPaginate)
+    {
+
+        boolean found=false;
+        for (Element link : links)
+        {
+
+            String linkHref = link.attr("href");
+            String videoId= ImageUtil.getVideoId(linkHref);
+            boolean has_video_id=false;
+            if(videoId!=null)
+            {
+                if(videoId.isEmpty()==false)
+                {
+                    has_video_id=true;
+                }
+            }
+            String linkText = link.text();
+
+            Elements imgs=link.getElementsByTag("img");
+
+            if(imgs.isEmpty()==false&link.hasAttr("aria-label")
+                    &has_video_id&ImageUtil.isYoutubeUrl(linkHref))
+            {
+                String heading=link.attr("aria-label");
+                Element thumbnail=imgs.get(0);
+                if(thumbnail.hasAttr("src"))
+                {
+                    String srcdata=thumbnail.attr("src");
+                    Log.i("lxksfa","linkHref="+linkHref+" "+heading+" "+srcdata);
+                    MediaItemWebSearch mediaItemWebSearch=new MediaItemWebSearch();
+                    mediaItemWebSearch.setHeading(heading);
+                    mediaItemWebSearch.setLink(linkHref);
+                    mediaItemWebSearch.setBase64Image(ImageUtil.getBase64String(srcdata));
+                    mediaItemWebSearch.setVideo(true);
+
+                    mediaItemVideosWebSearchList_web.add(mediaItemWebSearch);
+                    found=true;
+
+                }
+                else
+                {
+                    Log.i("lxksfa","linkHref="+linkHref+" "+heading);
+                }
+
+
+
+            }
+
+        }
+
+        if(found)
+        {
+            if(mediaItemAdapter!=null)
+            {
+                mediaItemAdapter.use_web_source=true;
+                mediaItemAdapter.notifyDataSetChanged();
+            }
+        }
+
+
+    }
+
+    //Searching Google Drive
+    private void searchVideosOnGoogleDrive() {
+    }
+
+    private void searchByImagesOnGoogleDrive()
+    {
+    }
+
+    @BindView(R.id.preview_area)
+    FrameLayout preview_area;
+    @BindView(R.id.preview_thumbnail)
+    ImageView preview_thumbnail;
+
+
+
+    class SimpleCustomBottomSheet extends BaseBottomSheet {
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity) {
+            this(hostActivity, new Config.Builder(hostActivity).build());
+        }
+
+        public SimpleCustomBottomSheet(@NonNull Activity hostActivity, @NonNull BaseConfig config) {
+            super(hostActivity, config);
+        }
+
+        @NonNull
+        @Override
+        public final View onCreateSheetContentView(@NonNull Context context) {
+            View view= LayoutInflater.from(context).inflate(
+                    R.layout.view_simple_custom_bottom_sheet,
+                    this,
+                    false
+            );
+
+            return view;
+        }
+
+    }
+
+    private boolean notified_user=false;
+    private HashMap<Integer,String> failed_jobs=new HashMap<Integer,String>();
+    List<MediaItemWebSearch> mediaItemImagesWebSearchList_web=new ArrayList<MediaItemWebSearch>();
+    List<MediaItemWebSearch> mediaItemVideosWebSearchList_web=new ArrayList<MediaItemWebSearch>();
+    class MediaItemAdapter extends RecyclerView.Adapter<MediaItemAdapter.Holder>
+    {
+
+        public static final int IMAGE=0;
+        public static final int VIDEO=1;
+        public boolean use_web_source=true;
+        @NonNull
+        @Override
+        public MediaItemAdapter.Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
+            if(viewType==VIDEO)
+            {
+                View view= LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_media_item_websearch_video
+                                ,parent,false);
+                return new Holder(view);
+            }
+            else
+            {
+                View view= LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_media_item_websearch
+                                ,parent,false);
+                return new Holder(view);
+            }
+
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull MediaItemAdapter.Holder holder, int position) {
+
+            final int pos=position;
+            if(use_web_source&mediatypes_choosing_files!=null)
+            {
+                if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+                {
+                    //image
+                    MediaItemWebSearch mediaItemWebImage=mediaItemImagesWebSearchList_web.get(pos);
+                    String image_link=mediaItemWebImage.getLink();
+                    String image_heading=mediaItemWebImage.getHeading();
+
+                    holder.heading.setText(image_heading);
+                    if(position==selectedIndexImagesWeb)
+                    {
+                        holder.heading.setText(Html.fromHtml("<b>"+holder.heading.getText().toString()+"</b>"));
+                    }
+                    loadImg(image_link,holder.thumbnail_view,pos);
+
+                    holder.rootview.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            preViewImage(pos);
+                            bottomSheet.dismiss();
+
+                        }
+                    });
+
+                }
+                else
+                {
+
+                    //Video
+                    MediaItemWebSearch mediaItemWebVideo=mediaItemVideosWebSearchList_web.get(pos);
+                    String image_link=mediaItemWebVideo.getThumnail_url();
+                    String video_heading=mediaItemWebVideo.getHeading();
+
+                    holder.heading.setText(video_heading);
+
+                    int yu=video_heading.indexOf("Play on YouTube.");
+                    if(yu-1>0)
+                    {
+                        String jkls=video_heading.substring(0,yu);
+                        holder.heading.setText(jkls);
+                    }
+
+                    if(position==selectedVideoMedia)
+                    {
+                        holder.heading.setText(Html.fromHtml("<b>"+holder.heading.getText().toString()+"</b>"));
+                    }
+                    String videoId=ImageUtil.getVideoId(mediaItemWebVideo.getLink());
+                    if(videoId!=null)
+                    {
+                        //https://i.ytimg.com/vi/fhWaJi1Hsfo/sddefault.jpg
+                        loadVidImg(videoId,holder.thumbnail_view,position);
+
+                    }
+
+                    Log.i("searchingvideosweb_",mediaItemWebVideo.getHeading());
+
+                    holder.rootview.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            String videoId=ImageUtil.getVideoId(mediaItemWebVideo.getLink());
+                            if(videoId!=null)
+                            {
+                                //https://i.ytimg.com/vi/fhWaJi1Hsfo/sddefault.jpg
+                                preViewVideo(0,videoId);
+
+                            }
+
+
+                        }
+                    });
+
+                }
+            }
+
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if(use_web_source&mediatypes_choosing_files!=null)
+            {
+                if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+                {
+                    //image
+                    return IMAGE;
+                }
+                else
+                {
+                    //Video
+                    return VIDEO;
+
+                }
+            }
+            else
+            {
+                return IMAGE;
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            if(use_web_source&mediatypes_choosing_files!=null)
+            {
+                if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+                {
+                    return mediaItemImagesWebSearchList_web.size();
+                }
+                else
+                {
+                    return mediaItemVideosWebSearchList_web.size();
+                }
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public void loadImg(String image_link,CircleImageView imageView,Integer position)
+        {
+
+            RequestOptions options = new RequestOptions();
+            options.centerCrop();
+            Glide.with(TestGroup2.this)
+                    .load(Uri.parse(image_link))
+                    .centerCrop()
+                    .apply(options)
+                    .addListener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target,
+                                                    boolean isFirstResource) {
+                            failed_jobs.put(position,image_link);
+                            if(notified_user==false)
+                            {
+                                notified_user=true;
+                                new MaterialDialog.Builder(TestGroup2.this)
+                                        .title("We will try loading images that failed in every 5 seconds")
+                                        .content("We will retry loading failed images every 5 seconds")
+                                        .positiveText("Okay")
+                                        .show();
+
+                            }
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            if(failed_jobs.containsKey(position))
+                            {
+                                failed_jobs.remove(position);
+                            }
+                            return false;
+                        }
+                    })
+                    .into(imageView);
+
+        }
+
+        public void loadImg(String image_link,ImageView imageView,Integer position)
+        {
+
+            RequestOptions options = new RequestOptions();
+            options.centerCrop();
+            Glide.with(TestGroup2.this)
+                    .load(Uri.parse(image_link))
+                    .centerCrop()
+                    .apply(options)
+                    .addListener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            failed_jobs.put(position,image_link);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            if(failed_jobs.containsKey(position))
+                            {
+                                failed_jobs.remove(position);
+                            }
+                            return false;
+                        }
+                    })
+                    .into(imageView);
+
+        }
+
+        public void loadVidImg(String videoId, ImageView imageView, Integer position)
+        {
+
+            RequestOptions options = new RequestOptions();
+            options.centerCrop();
+
+            if(videoId!=null)
+            {
+                //https://i.ytimg.com/vi/fhWaJi1Hsfo/sddefault.jpg
+                if(videoId.isEmpty()==false)
+                {
+
+                    Glide.with(TestGroup2.this)
+                            .load(Uri.parse("https://img.youtube.com/vi/"+videoId+"/0.jpg"))
+                            .centerCrop()
+                            .apply(options)
+                            .into(imageView);
+                    Log.i("gysha","videoID="+videoId);
+                }
+
+            }
+
+        }
+
+        public class Holder extends RecyclerView.ViewHolder {
+
+            LinearLayout rootview;
+            ImageView thumbnail_view;
+            TextView heading;
+
+            public Holder(@NonNull View itemView) {
+                super(itemView);
+
+                rootview=(LinearLayout) itemView.findViewById(R.id.rootview);
+                thumbnail_view=(ImageView) itemView.findViewById(R.id.thumbnail_view);
+                heading=(TextView) itemView.findViewById(R.id.heading);
+
+            }
+
+
+        }
+
+    }
+
+    int selectedVideoMedia=-1;
+    private void preViewVideo(int i, String videoId)
+    {
+
+
+        if(i<mediaItemVideosWebSearchList_web.size()&i>-1)
+        {
+
+            selectedVideoMedia=i;
+            MediaItemWebSearch mediaItemWebSearch=mediaItemVideosWebSearchList_web.get(i);
+            youTubePlayerView.setVisibility(View.VISIBLE);
+            video_preview_menu.setVisibility(View.VISIBLE);
+            mediaItemAdapter.notifyDataSetChanged();
+
+            if(youTubePlayer!=null)
+            {
+
+                youTubePlayer.loadVideo(videoId,0);
+
+            }
+
+        }
+
+    }
+
+    void nextVideoItemMediaWeb()
+    {
+
+        if(media_source_menu.getSelectedTabPosition()==0)
+        {
+            if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+            {
+                //image
+
+
+            }
+            else
+            {
+
+                //Video
+                selectedVideoMedia++;
+                if(selectedVideoMedia>=mediaItemVideosWebSearchList_web.size())
+                {
+                    selectedVideoMedia=0;
+                }
+                MediaItemWebSearch mediaItemWebSearch=mediaItemVideosWebSearchList_web.get(selectedVideoMedia);
+                String videoId=ImageUtil.getVideoId(mediaItemWebSearch.getLink());
+                if(videoId!=null)
+                {
+                    //https://i.ytimg.com/vi/fhWaJi1Hsfo/sddefault.jpg
+                    preViewVideo(selectedVideoMedia,videoId);
+
+                }
+
+
+
+            }
+        }
+
+
+    }
+
+    void CancelVideoPreview()
+    {
+
+        if(youTubePlayer!=null)
+        {
+            youTubePlayer.pause();
+            video_preview_menu.setVisibility(View.GONE);
+            youTubePlayerView.setVisibility(View.GONE);
+        }
+
+    }
+
+    private void hideKeyBoard()
+    {
+
+        InputMethodManager inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if(this.getCurrentFocus()!=null)
+        {
+            inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+
+    }
+
+    int selectedIndexImagesWeb=-1;
+    private void preViewImage(int index)
+    {
+
+        selectedIndexImagesWeb=index;
+        if(index<mediaItemImagesWebSearchList_web.size()&index>-1)
+        {
+
+
+            preview_area.setVisibility(View.VISIBLE);
+            MediaItemWebSearch mediaItemWebSearch=mediaItemImagesWebSearchList_web.get(index);
+            //emojicon_edit_text.setHint(mediaItemWebSearch.getHeading());
+            Toast.makeText(this, mediaItemWebSearch.getHeading(), Toast.LENGTH_SHORT).show();
+            Log.i("sdfdsdfsd"," h="+preview_area.getMeasuredHeight()+" w="+preview_area.getMeasuredWidth());
+            Glide.with(TestGroup2.this)
+                    .load(Uri.parse(mediaItemWebSearch.getLink()))
+                    .override(preview_area.getMeasuredWidth(),preview_area.getMeasuredHeight())
+                    .addListener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.i("sdfdsdfsd","e"+e.getMessage());
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            Log.i("sdfdsdfsd","onResourceReady");
+                            return false;
+                        }
+                    })
+                    .into(preview_thumbnail);
+
+        }
+
+    }
+
+    @OnClick(R.id.cancel_preview)
+    void existPreviewImage()
+    {
+        preview_area.setVisibility(View.GONE);
+        emojicon_edit_text.setHint("What's your take?");
+    }
+    @OnClick(R.id.next_item_preview)
+    void nextItemMediaWeb()
+    {
+
+        if(media_source_menu.getSelectedTabPosition()==0)
+        {
+            if(mediatypes_choosing_files.getSelectedItemPosition()==0)
+            {
+                //image
+                selectedIndexImagesWeb++;
+                if(selectedIndexImagesWeb>=mediaItemImagesWebSearchList_web.size())
+                {
+                    selectedIndexImagesWeb=0;
+                }
+                preViewImage(selectedIndexImagesWeb);
+
+            }
+            else
+            {
+
+                //Video
+
+
+
+            }
+        }
+
+
+    }
 
 }

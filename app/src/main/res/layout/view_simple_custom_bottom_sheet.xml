@@ -7,7 +7,6 @@
     android:orientation="vertical">
 
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -20,7 +19,8 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             app:fabSize="mini"
-            app:srcCompat="@drawable/ic_baseline_keyboard_arrow_down_24" />
+            app:srcCompat="@drawable/ic_baseline_keyboard_arrow_down_24"
+            app:tint="@color/white"/>
 
         <TextView
             android:id="@+id/convo_title"
@@ -30,15 +30,118 @@
             android:textStyle="bold"
             android:layout_below="@id/close_button_media_dialog"/>
 
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/media_source_menu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/convo_title"
+            app:tabTextAppearance="@style/MineCustomTabText">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Web"/>
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Files"/>
+
+
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <Spinner
+            android:id="@+id/mediatypes_choosing_files"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/media_source_menu"
+            android:layout_centerHorizontal="true"
+            android:entries="@array/mediatypes"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/mediatypes_choosing_files">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/media_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                >
+
+                <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+                    android:id="@+id/youtube_player_view"
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:visibility="gone"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    />
+
+                <LinearLayout
+                    android:id="@+id/video_preview_menu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    android:background="@drawable/rounded_rectangle"
+                    android:padding="5dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginBottom="190dp"
+                    android:layout_marginRight="5dp"
+                    >
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/video_cancel_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_baseline_close_24"
+                        app:fabSize="mini"
+                        app:tint="@color/white"
+                        app:backgroundTint="@color/glass2"
+                        />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/video_next_item_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/baseline_keyboard_arrow_right_purple_700_24dp"
+                        app:fabSize="mini"
+                        app:tint="@color/white"
+                        app:backgroundTint="@color/glass2"/>
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/select_item_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_baseline_done_24"
+                        app:fabSize="mini"
+                        app:tint="@color/white"
+                        app:backgroundTint="@color/glass2"/>
+
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+
+        </FrameLayout>
+
+
     </RelativeLayout>
 
 
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/media_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+
 
     <ProgressBar
         android:id="@+id/progress_bar_loading_head_comment"

@@ -326,6 +326,8 @@
                         android:layout_marginBottom="60dp"
                         />
 
+
+
                     <com.google.android.material.chip.Chip
                         android:id="@+id/timestamp_skipper"
                         android:layout_width="wrap_content"
@@ -340,6 +342,60 @@
                         android:visibility="gone"
                         android:layout_below="@+id/tabs"
                         />
+
+                    <FrameLayout
+                        android:id="@+id/preview_area"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@id/tabs"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:background="@color/white"
+                        android:visibility="gone"
+                        >
+
+
+
+                        <ImageView
+                            android:id="@+id/preview_thumbnail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            />
+
+
+
+                        <LinearLayout
+                            android:id="@+id/preview_menu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_margin="10dp"
+                            android:background="@drawable/rounded_rectangle"
+                            android:padding="5dp">
+
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:id="@+id/cancel_preview"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_baseline_close_24"
+                                app:fabSize="mini"
+                                app:tint="@color/white"
+                                app:backgroundTint="@color/glass2"
+                                />
+
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:id="@+id/next_item_preview"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/baseline_keyboard_arrow_right_purple_700_24dp"
+                                app:fabSize="mini"
+                                app:tint="@color/white"
+                                app:backgroundTint="@color/glass2"/>
+
+
+                        </LinearLayout>
+
+                    </FrameLayout>
 
                     <!--The Typing text area-->
                     <LinearLayout

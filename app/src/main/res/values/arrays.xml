@@ -29,5 +29,9 @@
         <item>Most Recent</item>
         <item>Most Previous</item>
     </string-array>
+    <string-array name="mediatypes">
+        <item>Images</item>
+        <item>Videos</item>
+    </string-array>
 
 </resources>

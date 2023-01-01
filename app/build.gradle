@@ -169,7 +169,9 @@ dependencies {
 
     implementation 'com.karumi:dexter:6.2.3'
 
-
+    dependencies {
+        implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0'
+    }
 
 
 }

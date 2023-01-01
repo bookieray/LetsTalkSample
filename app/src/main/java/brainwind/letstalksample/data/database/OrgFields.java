@@ -150,4 +150,10 @@ public class OrgFields
     public static final String SERVER_TIME_OFFSET = "server_time_offset";
 
     public static final String NO_MORE_PREV_COMMENTS = "no_more_prev_comments";
+    public static final String IS_ORG_CREATED = "is_org_created";
+    //Comment Media
+    public static final String COMMENT_MEDIA = "comment_media";
+
+
+    public static final String COMMENT_TYPES = "comment_types";
 }

@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Map;
 
 import brainwind.letstalksample.data.database.OrgFields;
+import brainwind.letstalksample.data.database.user.user_info.UserInfo;
 import brainwind.letstalksample.data.memory.Memory;
 import brainwind.letstalksample.data.utilities.TimeUtilities;
 
@@ -30,11 +31,43 @@ public class Comment
     public boolean qoutedFrom=false;
     //Types of comment
     public static final int AGREES=0;
+
+    public static final int AGREES_TEXT_ONLY=6;
+    public static final int AGREES_IMAGE_ONLY=7;
+    public static final int AGREES_IMAGE_TEXT_ONLY=8;
+    public static final int AGREES_VIDEO_ONLY=9;
+    public static final int AGREES_VIDEO_TEXT_ONLY=10;
+
+    public static final int DISAGREES_TEXT_ONLY=11;
+    public static final int DISAGREES_IMAGE_ONLY=12;
+    public static final int DISAGREES_IMAGE_TEXT_ONLY=13;
+    public static final int DISAGREES_VIDEO_ONLY=14;
+    public static final int DISAGREES_VIDEO_TEXT_ONLY=15;
+
+    public static final int QUESTION_TEXT_ONLY=16;
+    public static final int QUESTION_IMAGE_ONLY=17;
+    public static final int QUESTION_IMAGE_TEXT_ONLY=18;
+    public static final int QUESTION_VIDEO_ONLY=19;
+    public static final int QUESTION_VIDEO_TEXT_ONLY=20;
+
+    public static final int ANSWER_TEXT_ONLY=21;
+    public static final int ANSWER_IMAGE_ONLY=22;
+    public static final int ANSWER_IMAGE_TEXT_ONLY=23;
+    public static final int ANSWER_VIDEO_ONLY=24;
+    public static final int ANSWER_VIDEO_TEXT_ONLY=25;
+
+    public static final int AGREES_AUDIO=26;
+    public static final int DISAGREES_AUDIO=27;
+    public static final int QUESTION_AUDIO=28;
+    public static final int ANSWER_AUDIO=29;
+
+
     public static final int DISAGREES=1;
     public static final int QUESTION=2;
     public static final int QOUTE=3;
     public static final int ANSWER=4;
     public static final int NEWS_AD=5;
+
     //The type of comment
     private int comment_type=AGREES;
     //The comment
@@ -455,6 +488,19 @@ public class Comment
     }
 
     public Comment() {
+
+    }
+
+
+    public Comment(String comment, UserInfo userInfo)
+    {
+
+        this.setComment(comment);
+        if(userInfo!=null)
+        {
+            setCommentator_name(userInfo.firstname+" "+userInfo.lastname);
+            setCommentator_uid(userInfo.uid);
+        }
 
     }
 
@@ -1312,6 +1358,7 @@ public class Comment
         }
 
     }
+
 
 
 }
